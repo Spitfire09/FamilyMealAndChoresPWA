@@ -231,13 +231,14 @@ function App() {
   }, [state])
 
   useEffect(() => {
-    const timer = window.setInterval(() => setCurrentTime(new Date()), 60_000)
+    const timer = window.setInterval(() => {
+      const now = new Date()
+      setCurrentTime(now)
+      setState((previous) => reconcileState(previous, now))
+    }, 60_000)
+
     return () => window.clearInterval(timer)
   }, [])
-
-  useEffect(() => {
-    setState((previous) => reconcileState(previous, currentTime))
-  }, [currentTime])
 
   const planningDates = useMemo(() => buildPlanningDates(currentTime), [currentTime])
 
