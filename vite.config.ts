@@ -2,12 +2,23 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
+const appVersion = process.env.VITE_APP_VERSION ?? new Date().toISOString()
+const basePath = process.env.VITE_BASE_PATH ?? '/'
+const cacheVersion = appVersion.replace(/[^a-zA-Z0-9-]/g, '-')
+
 export default defineConfig({
+  base: basePath,
+  define: {
+    __APP_VERSION__: JSON.stringify(appVersion),
+  },
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'app-icon.svg'],
+      workbox: {
+        cacheId: `family-meal-and-chores-${cacheVersion}`,
+      },
       manifest: {
         name: 'FamilieMad & Pligter',
         short_name: 'FamilieMad',
@@ -16,7 +27,8 @@ export default defineConfig({
         theme_color: '#155eef',
         background_color: '#f4f7fb',
         display: 'standalone',
-        start_url: '/',
+        start_url: basePath,
+        scope: basePath,
         lang: 'da',
         icons: [
           {

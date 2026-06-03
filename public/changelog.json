@@ -1,0 +1,23 @@
+{
+  "generatedAt": "2026-06-03T15:06:32.184Z",
+  "entries": [
+    {
+      "commit": "203a912e33e6418de8f19e030b4541dedb1353d7",
+      "version": "203a912",
+      "timestamp": "2026-06-03T14:55:18Z",
+      "message": "Merge pull request #1 from Spitfire09/copilot/create-pwa-app-v1"
+    },
+    {
+      "commit": "aef34c51a11099a25490ff61c15f5bc4160e6333",
+      "version": "aef34c5",
+      "timestamp": "2026-06-03T14:40:57Z",
+      "message": "Finalize first PWA release"
+    },
+    {
+      "commit": "080e26b4e260c49330d25e49ac209aee212dae60",
+      "version": "080e26b",
+      "timestamp": "2026-06-03T16:26:00+02:00",
+      "message": "Add first dummy file"
+    }
+  ]
+}

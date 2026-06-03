@@ -254,6 +254,10 @@ input,
   font-weight: 700;
 }
 
+.utility-button {
+  width: 100%;
+}
+
 .task-field {
   min-width: 0;
 }
