@@ -1,29 +1,23 @@
 {
-  "generatedAt": "2026-06-03T15:06:49.461Z",
+  "generatedAt": "2026-06-03T16:41:02.140Z",
   "entries": [
     {
-      "commit": "3134e0c2e5a7dde433e47e2656b9dae01bf1701f",
-      "version": "3134e0c",
-      "timestamp": "2026-06-03T15:06:41Z",
-      "message": "Add changelog, app update UI, and pages deploy workflow"
+      "commit": "6fea90e2de966e14c6ce94c1e0248aa37d7194c2",
+      "version": "6fea90e",
+      "timestamp": "2026-06-03T15:32:01Z",
+      "message": "Merge pull request #3 from Spitfire09/copilot/optimer-mobil-afvikling"
     },
     {
-      "commit": "203a912e33e6418de8f19e030b4541dedb1353d7",
-      "version": "203a912",
-      "timestamp": "2026-06-03T14:55:18Z",
-      "message": "Merge pull request #1 from Spitfire09/copilot/create-pwa-app-v1"
+      "commit": "82185fdf0ce9be4f00f4f1d4418999bbad3c890d",
+      "version": "82185fd",
+      "timestamp": "2026-06-03T15:28:13Z",
+      "message": "Fix meal day expansion state handling"
     },
     {
-      "commit": "aef34c51a11099a25490ff61c15f5bc4160e6333",
-      "version": "aef34c5",
-      "timestamp": "2026-06-03T14:40:57Z",
-      "message": "Finalize first PWA release"
-    },
-    {
-      "commit": "080e26b4e260c49330d25e49ac209aee212dae60",
-      "version": "080e26b",
-      "timestamp": "2026-06-03T16:26:00+02:00",
-      "message": "Add first dummy file"
+      "commit": "9495cbf36cf7eb3d6439cb538854447828cd2635",
+      "version": "9495cbf",
+      "timestamp": "2026-06-03T15:10:44Z",
+      "message": "Merge pull request #2 from Spitfire09/copilot/add-changelog-and-auto-update"
     }
   ]
 }
