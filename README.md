@@ -23,3 +23,19 @@ npm run build
 ## Lagring
 
 Alle data gemmes lokalt i browserens `localStorage` på den enkelte enhed.
+
+## Changelog og versioner
+
+- `npm run build` genererer automatisk `public/changelog.json` ud fra de nyeste commits med dato/tidsstempel.
+- Appen viser de 5 seneste versioner fra changelog.
+- App-version sættes via `VITE_APP_VERSION` (fallback er build-tidspunkt) og bruges også til PWA-cache versionering.
+
+## GitHub Pages deploy (automatisk)
+
+Workflowfilen `.github/workflows/deploy-pages.yml` deployer automatisk ved push til `main`.
+
+Hvis du skal sætte mere op i GitHub:
+
+1. Gå til **Settings → Pages**.
+2. Under **Source**, vælg **GitHub Actions** (ikke "Deploy from a branch").
+3. Gem ændringen og lav et nyt push til `main`.

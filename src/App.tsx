@@ -5,6 +5,7 @@ import './App.css'
 const FAMILY_MEMBERS = ['Tommy', 'Tanja', 'Magnus', 'Robert', 'Sara'] as const
 const STORAGE_KEY = 'family-meal-and-chores/v1'
 const PLANNING_DAYS = 10
+const APP_VERSION = __APP_VERSION__
 
 type FamilyMember = (typeof FAMILY_MEMBERS)[number]
 type AttendanceStatus = 'yes' | 'no' | 'pending'
@@ -23,6 +24,13 @@ type ChoreLogEntry = {
   person: FamilyMember
   task: string
   notedAt: string
+}
+
+type ChangelogEntry = {
+  commit: string
+  version: string
+  timestamp: string
+  message: string
 }
 
 type AppState = {
@@ -225,10 +233,56 @@ function App() {
   const [currentTime, setCurrentTime] = useState(() => new Date())
   const [selectedPerson, setSelectedPerson] = useState<FamilyMember>(FAMILY_MEMBERS[0])
   const [choreTask, setChoreTask] = useState('')
+  const [releaseHistory, setReleaseHistory] = useState<ChangelogEntry[]>([])
+  const [updateReady, setUpdateReady] = useState(false)
+  const [applyUpdate, setApplyUpdate] = useState<((reloadPage?: boolean) => Promise<void>) | null>(null)
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
   }, [state])
+
+  useEffect(() => {
+    let active = true
+
+    async function loadChangelog() {
+      try {
+        const response = await fetch(`${import.meta.env.BASE_URL}changelog.json`, {
+          cache: 'no-store',
+        })
+
+        if (!response.ok) {
+          return
+        }
+
+        const payload = (await response.json()) as { entries?: ChangelogEntry[] }
+
+        if (active) {
+          setReleaseHistory((payload.entries ?? []).slice(0, 5))
+        }
+      } catch {
+        if (active) {
+          setReleaseHistory([])
+        }
+      }
+    }
+
+    loadChangelog()
+
+    return () => {
+      active = false
+    }
+  }, [])
+
+  useEffect(() => {
+    function onUpdateAvailable(event: Event) {
+      const updateEvent = event as CustomEvent<((reloadPage?: boolean) => Promise<void>) | undefined>
+      setUpdateReady(true)
+      setApplyUpdate(() => updateEvent.detail ?? null)
+    }
+
+    window.addEventListener('pwa:update-available', onUpdateAvailable)
+    return () => window.removeEventListener('pwa:update-available', onUpdateAvailable)
+  }, [])
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -322,6 +376,15 @@ function App() {
     setChoreTask('')
   }
 
+  function reloadLatestVersion() {
+    if (applyUpdate) {
+      void applyUpdate(true)
+      return
+    }
+
+    window.location.reload()
+  }
+
   return (
     <main className="app-shell">
       <header className="hero">
@@ -336,6 +399,10 @@ function App() {
         <div className="hero-note">
           <strong>Data gemmes kun lokalt.</strong>
           <span>Perfekt til første test på én enhed før senere synkronisering.</span>
+          <span>App-version: {APP_VERSION}</span>
+          <button type="button" className="primary-button utility-button" onClick={reloadLatestVersion}>
+            {updateReady ? 'Ny version klar · genindlæs' : 'Genindlæs appen'}
+          </button>
         </div>
       </header>
 
@@ -506,6 +573,22 @@ function App() {
                   <li key={entry.id}>
                     <strong>{entry.person}</strong> meldte ikke ind til {formatDate(entry.mealDate)}
                     <span>Logget {formatDateTime(entry.loggedAt)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div className="log-list">
+            <h3>Versionshistorik (seneste 5)</h3>
+            {releaseHistory.length === 0 ? (
+              <p className="empty-state">Ingen changelog-data fundet endnu.</p>
+            ) : (
+              <ul>
+                {releaseHistory.map((entry) => (
+                  <li key={entry.commit}>
+                    <strong>{entry.version}</strong> · {entry.message}
+                    <span>{formatDateTime(entry.timestamp)}</span>
                   </li>
                 ))}
               </ul>
