@@ -1,11 +1,90 @@
+/* ── App shell ─────────────────────────────────────────────────────────── */
 .app-shell {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  padding: 1.5rem;
+  min-height: 100vh;
 }
 
-.hero,
+/* ── Slim header ────────────────────────────────────────────────────────── */
+.slim-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 1.25rem;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.slim-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.app-version {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.update-badge {
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ── Content layout ─────────────────────────────────────────────────────── */
+.content-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  flex: 1;
+}
+
+/* Main content area (summary + panel) */
+.main-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+/* ── Tab bar ────────────────────────────────────────────────────────────── */
+.tab-bar {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.tab-button {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  min-height: 44px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tab-button.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* ── Panel & cards ──────────────────────────────────────────────────────── */
 .panel,
 .summary-card {
   background: var(--panel);
@@ -14,34 +93,8 @@
   box-shadow: var(--shadow);
 }
 
-.hero {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: 2fr minmax(220px, 1fr);
-  padding: 1.75rem;
-}
-
-.eyebrow {
-  margin: 0 0 0.5rem;
-  color: var(--accent);
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.lead {
-  max-width: 60ch;
-}
-
-.hero-note {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 1rem;
-  background: var(--accent-soft);
-  border-radius: 18px;
+.panel {
+  padding: 1.5rem;
 }
 
 .summary-grid {
@@ -75,10 +128,7 @@
   background: var(--warning-soft);
 }
 
-.panel {
-  padding: 1.5rem;
-}
-
+/* ── Section heading ────────────────────────────────────────────────────── */
 .section-heading {
   display: flex;
   align-items: center;
@@ -93,6 +143,7 @@
   margin: 0 0 0.35rem;
 }
 
+/* ── Chips & pills ──────────────────────────────────────────────────────── */
 .chip,
 .status-pill {
   display: inline-flex;
@@ -119,6 +170,7 @@
   color: #b42318;
 }
 
+/* ── Meal grid ──────────────────────────────────────────────────────────── */
 .meal-grid {
   display: grid;
   gap: 1rem;
@@ -171,6 +223,7 @@
   margin: 0;
 }
 
+/* ── Choice buttons ─────────────────────────────────────────────────────── */
 .choice-group {
   display: flex;
   flex-wrap: wrap;
@@ -215,51 +268,7 @@ input {
   color: var(--accent);
 }
 
-.alert {
-  margin-top: 1rem;
-  padding: 0.9rem 1rem;
-  border-radius: 14px;
-  background: var(--warning-soft);
-  color: #912018;
-}
-
-.tab-bar {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.5rem;
-}
-
-.tab-button {
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  min-height: 44px;
-  background: var(--panel);
-  color: var(--text);
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.tab-button.active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
-}
-
-.chore-form {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: minmax(0, 200px) minmax(0, 1fr) auto;
-  align-items: end;
-}
-
-.chore-form label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  font-weight: 600;
-}
-
+/* ── Buttons & inputs ───────────────────────────────────────────────────── */
 select,
 input,
 .primary-button {
@@ -280,10 +289,36 @@ input,
   width: 100%;
 }
 
+.remove-button {
+  padding: 0.3rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+/* ── Chore form ─────────────────────────────────────────────────────────── */
+.chore-form {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 200px) minmax(0, 1fr) auto;
+  align-items: end;
+}
+
+.chore-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-weight: 600;
+}
+
 .task-field {
   min-width: 0;
 }
 
+/* ── Mini stats ─────────────────────────────────────────────────────────── */
 .mini-stats {
   display: grid;
   gap: 0.75rem;
@@ -304,6 +339,7 @@ input,
   color: var(--heading);
 }
 
+/* ── Settings ───────────────────────────────────────────────────────────── */
 .settings-grid {
   display: grid;
   gap: 1rem;
@@ -315,6 +351,125 @@ input,
   flex-direction: column;
   gap: 0.4rem;
   font-weight: 600;
+}
+
+.settings-section {
+  margin-bottom: 1.75rem;
+}
+
+.settings-section h3 {
+  margin-bottom: 0.4rem;
+}
+
+.settings-hint {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+/* User schedule cards */
+.user-schedule-card {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1rem;
+  background: var(--surface);
+  margin-bottom: 0.75rem;
+}
+
+.user-schedule-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.radio-group {
+  display: flex;
+  gap: 1rem;
+}
+
+.radio-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+/* Part-time schedule table */
+.parttime-schedule {
+  margin-top: 1rem;
+  overflow-x: auto;
+}
+
+.schedule-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.schedule-table th,
+.schedule-table td {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.schedule-table th {
+  font-weight: 700;
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.schedule-table select {
+  min-height: 36px;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.85rem;
+}
+
+/* Kitchen closed rules */
+.kitchen-rules-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.kitchen-rule {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+
+.add-kitchen-rule {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 1fr 1fr auto;
+  align-items: end;
+}
+
+.add-kitchen-rule label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* ── Log lists ──────────────────────────────────────────────────────────── */
+.log-list {
+  margin-top: 1.25rem;
 }
 
 .log-list ul {
@@ -349,13 +504,35 @@ input,
   color: var(--muted);
 }
 
-@media (max-width: 960px) {
-  .hero,
-  .summary-grid,
-  .chore-form {
-    grid-template-columns: 1fr;
+/* ── Desktop layout: vertical sidebar tabs ──────────────────────────────── */
+@media (min-width: 800px) {
+  .content-layout {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 1.5rem;
+    padding: 1.5rem;
   }
 
+  .tab-bar {
+    display: flex;
+    flex-direction: column;
+    width: 180px;
+    flex-shrink: 0;
+    position: sticky;
+    top: calc(2.6rem + 1px); /* height of slim-header */
+    grid-template-columns: unset;
+  }
+
+  .tab-button {
+    border-radius: 14px;
+    text-align: left;
+    padding: 0.75rem 1rem;
+    min-height: 48px;
+  }
+}
+
+/* ── Tablet breakpoint ──────────────────────────────────────────────────── */
+@media (max-width: 960px) and (min-width: 800px) {
   .section-heading,
   .meal-card-header {
     flex-direction: column;
@@ -363,13 +540,27 @@ input,
   }
 }
 
+@media (max-width: 960px) {
+  .chore-form {
+    grid-template-columns: 1fr;
+  }
+
+  .add-kitchen-rule {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .add-kitchen-rule .primary-button {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ── Mobile ─────────────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
-  .app-shell {
-    padding: 1rem;
+  .content-layout {
+    padding: 0.75rem;
   }
 
   .panel,
-  .hero,
   .summary-card {
     border-radius: 20px;
   }
@@ -378,7 +569,9 @@ input,
     flex-direction: column;
   }
 
-  .tab-bar {
-    grid-template-columns: 1fr;
+  .section-heading,
+  .meal-card-header {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
