@@ -33,6 +33,8 @@ type ChangelogEntry = {
   message: string
 }
 
+type ActiveTab = 'meals' | 'chores' | 'settings'
+
 type AppState = {
   mealPlan: MealPlan
   dateCreatedAt: Record<string, string>
@@ -231,7 +233,10 @@ function loadState() {
 function App() {
   const [state, setState] = useState<AppState>(() => loadState())
   const [currentTime, setCurrentTime] = useState(() => new Date())
+  const [activeTab, setActiveTab] = useState<ActiveTab>('meals')
+  const [selectedMember, setSelectedMember] = useState<FamilyMember>(FAMILY_MEMBERS[0])
   const [selectedPerson, setSelectedPerson] = useState<FamilyMember>(FAMILY_MEMBERS[0])
+  const [expandedDay, setExpandedDay] = useState<string | null>(null)
   const [choreTask, setChoreTask] = useState('')
   const [releaseHistory, setReleaseHistory] = useState<ChangelogEntry[]>([])
   const [updateReady, setUpdateReady] = useState(false)
@@ -295,6 +300,8 @@ function App() {
   }, [])
 
   const planningDates = useMemo(() => buildPlanningDates(currentTime), [currentTime])
+
+  const activeExpandedDay = planningDates.includes(expandedDay ?? '') ? expandedDay : planningDates[0] ?? null
 
   const lateWarnings = useMemo(
     () =>
@@ -391,18 +398,12 @@ function App() {
         <div>
           <p className="eyebrow">Familie-app · lokal første version</p>
           <h1>FamilieMad &amp; Pligter</h1>
-          <p className="lead">
-            Planlæg aftensmad nogle dage frem, få besked om manglende svar og registrer huslige
-            pligter på samme enhed.
-          </p>
+          <p className="lead">Mobilvenligt overblik over aftensmad, pligter og indstillinger.</p>
         </div>
         <div className="hero-note">
-          <strong>Data gemmes kun lokalt.</strong>
-          <span>Perfekt til første test på én enhed før senere synkronisering.</span>
+          <strong>Aktiv bruger: {selectedMember}</strong>
+          <span>Data gemmes kun lokalt på denne enhed.</span>
           <span>App-version: {APP_VERSION}</span>
-          <button type="button" className="primary-button utility-button" onClick={reloadLatestVersion}>
-            {updateReady ? 'Ny version klar · genindlæs' : 'Genindlæs appen'}
-          </button>
         </div>
       </header>
 
@@ -429,71 +430,110 @@ function App() {
         </article>
       </section>
 
-      <section className="panel">
-        <div className="section-heading">
-          <div>
-            <h2>Aftensmad</h2>
-            <p>Meld ind for hver person. Fristen er senest dagen før.</p>
+      <nav className="tab-bar" aria-label="Hovedfaner">
+        <button
+          type="button"
+          className={`tab-button ${activeTab === 'meals' ? 'active' : ''}`}
+          onClick={() => setActiveTab('meals')}
+        >
+          Aftensmad
+        </button>
+        <button
+          type="button"
+          className={`tab-button ${activeTab === 'chores' ? 'active' : ''}`}
+          onClick={() => setActiveTab('chores')}
+        >
+          Pligter
+        </button>
+        <button
+          type="button"
+          className={`tab-button ${activeTab === 'settings' ? 'active' : ''}`}
+          onClick={() => setActiveTab('settings')}
+        >
+          Indstillinger
+        </button>
+      </nav>
+
+      {activeTab === 'meals' && (
+        <section className="panel">
+          <div className="section-heading">
+            <div>
+              <h2>Aftensmad</h2>
+              <p>Tryk på en dag for detaljer. Kun {selectedMember} kan meldes ind herfra.</p>
+            </div>
+            <span className="chip">Opdateret {formatDateTime(currentTime.toISOString())}</span>
           </div>
-          <span className="chip">Opdateret {formatDateTime(currentTime.toISOString())}</span>
-        </div>
 
-        <div className="meal-grid">
-          {planningDates.map((dateKey) => {
-            const day = state.mealPlan[dateKey] ?? createEmptyDay()
-            const lateMembers =
-              lateWarnings.find((warning) => warning.dateKey === dateKey)?.pendingMembers ?? []
+          <div className="meal-grid">
+            {planningDates.map((dateKey) => {
+              const day = state.mealPlan[dateKey] ?? createEmptyDay()
+              const lateMembers =
+                lateWarnings.find((warning) => warning.dateKey === dateKey)?.pendingMembers ?? []
+              const yesMembers = FAMILY_MEMBERS.filter((member) => day[member] === 'yes')
+              const noMembers = FAMILY_MEMBERS.filter((member) => day[member] === 'no')
+              const pendingMembers = FAMILY_MEMBERS.filter((member) => day[member] === 'pending')
+              const isExpanded = activeExpandedDay === dateKey
 
-            return (
-              <article className="meal-card" key={dateKey}>
-                <div className="meal-card-header">
-                  <div>
-                    <h3>{formatDate(dateKey)}</h3>
-                    <p>Frist: {formatDeadlineDate(dateKey)}</p>
-                  </div>
-                  {lateMembers.length > 0 ? (
-                    <span className="status-pill danger">{lateMembers.length} for sent</span>
-                  ) : (
-                    <span className="status-pill ok">Åben / opdateret</span>
-                  )}
-                </div>
-
-                <ul className="person-list">
-                  {FAMILY_MEMBERS.map((member) => (
-                    <li key={member} className="person-row">
+              return (
+                <article className="meal-card" key={dateKey}>
+                  <button
+                    type="button"
+                    className="meal-summary-button"
+                    onClick={() => setExpandedDay(isExpanded ? null : dateKey)}
+                    aria-expanded={isExpanded}
+                  >
+                    <div className="meal-card-header">
                       <div>
-                        <strong>{member}</strong>
-                        <p>{statusLabels[day[member]]}</p>
+                        <h3>{formatDate(dateKey)}</h3>
+                        <p>Frist: {formatDeadlineDate(dateKey)}</p>
                       </div>
-                      <div className="choice-group" role="group" aria-label={`${member} ${dateKey}`}>
+                      {lateMembers.length > 0 ? (
+                        <span className="status-pill danger">{lateMembers.length} for sent</span>
+                      ) : (
+                        <span className="status-pill ok">Klar</span>
+                      )}
+                    </div>
+
+                    <div className="compact-status">
+                      <p>
+                        <strong>Ja:</strong> {yesMembers.join(', ') || 'Ingen endnu'}
+                      </p>
+                      <p>
+                        <strong>Nej:</strong> {noMembers.join(', ') || 'Ingen endnu'}
+                      </p>
+                      <p>
+                        <strong>Afventer:</strong> {pendingMembers.join(', ') || 'Ingen'}
+                      </p>
+                    </div>
+                  </button>
+
+                  {isExpanded && (
+                    <div className="meal-editor">
+                      <p>
+                        <strong>{selectedMember}</strong> · {statusLabels[day[selectedMember]]}
+                      </p>
+                      <div className="choice-group" role="group" aria-label={`${selectedMember} ${dateKey}`}>
                         {statusChoices.map((status) => (
                           <button
                             key={status}
                             type="button"
-                            className={`choice ${status} ${day[member] === status ? 'active' : ''}`}
-                            onClick={() => updateAttendance(dateKey, member, status)}
+                            className={`choice ${status} ${day[selectedMember] === status ? 'active' : ''}`}
+                            onClick={() => updateAttendance(dateKey, selectedMember, status)}
                           >
                             {status === 'yes' ? 'Ja' : status === 'no' ? 'Nej' : 'Uafklaret'}
                           </button>
                         ))}
                       </div>
-                    </li>
-                  ))}
-                </ul>
+                    </div>
+                  )}
+                </article>
+              )
+            })}
+          </div>
+        </section>
+      )}
 
-                {lateMembers.length > 0 && (
-                  <div className="alert">
-                    <strong>Advarsel:</strong> {lateMembers.join(', ')} mangler stadig at melde ind
-                    i tide.
-                  </div>
-                )}
-              </article>
-            )
-          })}
-        </div>
-      </section>
-
-      <div className="two-column">
+      {activeTab === 'chores' && (
         <section className="panel">
           <div className="section-heading">
             <div>
@@ -555,16 +595,42 @@ function App() {
             )}
           </div>
         </section>
+      )}
 
+      {activeTab === 'settings' && (
         <section className="panel">
           <div className="section-heading">
             <div>
-              <h2>Log over for sene svar</h2>
-              <p>Automatisk log over personer, der ikke meldte ind senest dagen før.</p>
+              <h2>Indstillinger</h2>
+              <p>Vælg aktiv bruger, genindlæs appen og se historik.</p>
             </div>
           </div>
 
+          <div className="settings-grid">
+            <label>
+              Aktiv bruger til aftensmad
+              <select
+                value={selectedMember}
+                onChange={(event) => setSelectedMember(event.target.value as FamilyMember)}
+              >
+                {FAMILY_MEMBERS.map((member) => (
+                  <option key={member} value={member}>
+                    {member}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              className="primary-button utility-button"
+              onClick={reloadLatestVersion}
+            >
+              {updateReady ? 'Ny version klar · genindlæs' : 'Genindlæs appen'}
+            </button>
+          </div>
+
           <div className="log-list">
+            <h3>Historik · sene svar</h3>
             {recentLateLogs.length === 0 ? (
               <p className="empty-state">Ingen sene svar registreret endnu.</p>
             ) : (
@@ -595,7 +661,7 @@ function App() {
             )}
           </div>
         </section>
-      </div>
+      )}
     </main>
   )
 }
