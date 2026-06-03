@@ -301,11 +301,7 @@ function App() {
 
   const planningDates = useMemo(() => buildPlanningDates(currentTime), [currentTime])
 
-  useEffect(() => {
-    if (!expandedDay || !planningDates.includes(expandedDay)) {
-      setExpandedDay(planningDates[0] ?? null)
-    }
-  }, [expandedDay, planningDates])
+  const activeExpandedDay = planningDates.includes(expandedDay ?? '') ? expandedDay : planningDates[0] ?? null
 
   const lateWarnings = useMemo(
     () =>
@@ -476,7 +472,7 @@ function App() {
               const yesMembers = FAMILY_MEMBERS.filter((member) => day[member] === 'yes')
               const noMembers = FAMILY_MEMBERS.filter((member) => day[member] === 'no')
               const pendingMembers = FAMILY_MEMBERS.filter((member) => day[member] === 'pending')
-              const isExpanded = expandedDay === dateKey
+              const isExpanded = activeExpandedDay === dateKey
 
               return (
                 <article className="meal-card" key={dateKey}>
