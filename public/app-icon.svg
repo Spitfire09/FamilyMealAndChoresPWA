@@ -1,18 +1,64 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#155eef" />
-  <circle cx="170" cy="170" r="54" fill="#dbe8ff" />
-  <circle cx="340" cy="170" r="54" fill="#dbe8ff" />
-  <path
-    d="M116 316c0-35.3 28.7-64 64-64h152c35.3 0 64 28.7 64 64v24c0 26.5-21.5 48-48 48H164c-26.5 0-48-21.5-48-48v-24Z"
-    fill="#fff"
-  />
-  <path
-    d="M168 300h176v28c0 8.8-7.2 16-16 16H184c-8.8 0-16-7.2-16-16v-28Z"
-    fill="#155eef"
-  />
-  <path
-    d="M126 222h260c22.1 0 40 17.9 40 40v34c0 17.7-14.3 32-32 32H118c-17.7 0-32-14.3-32-32v-34c0-22.1 17.9-40 40-40Z"
-    fill="#fff"
-    opacity=".18"
-  />
+  <!-- Background -->
+  <rect width="512" height="512" rx="110" fill="#1a4fa0"/>
+  <rect width="512" height="512" rx="110" fill="url(#bg-grad)"/>
+  <defs>
+    <radialGradient id="bg-grad" cx="40%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#2563c8"/>
+      <stop offset="100%" stop-color="#0d3580"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Plate (large white circle) -->
+  <circle cx="256" cy="290" r="145" fill="#e8edf5"/>
+  <circle cx="256" cy="290" r="130" fill="#ffffff"/>
+
+  <!-- Fork (left) -->
+  <rect x="84" y="190" width="14" height="130" rx="7" fill="#f97316"/>
+  <rect x="84" y="185" width="4" height="50" rx="2" fill="#f97316"/>
+  <rect x="91" y="185" width="4" height="50" rx="2" fill="#f97316"/>
+  <rect x="98" y="185" width="4" height="50" rx="2" fill="#f97316"/>
+  <rect x="84" y="230" width="18" height="6" rx="3" fill="#f97316"/>
+
+  <!-- Spoon (right) -->
+  <rect x="414" y="210" width="14" height="120" rx="7" fill="#9ca3af"/>
+  <ellipse cx="421" cy="198" rx="18" ry="24" fill="#d1d5db"/>
+  <ellipse cx="421" cy="196" rx="13" ry="18" fill="#e5e7eb"/>
+
+  <!-- House shape -->
+  <polygon points="256,80 170,155 342,155" fill="#5bb8c4"/>
+  <rect x="186" y="153" width="140" height="85" rx="4" fill="#5bb8c4"/>
+  <!-- House windows -->
+  <rect x="205" y="170" width="22" height="22" rx="4" fill="#fde68a"/>
+  <rect x="235" y="170" width="22" height="22" rx="4" fill="#fde68a"/>
+  <rect x="265" y="170" width="22" height="22" rx="4" fill="#fde68a"/>
+
+  <!-- Calendar on plate -->
+  <rect x="196" y="238" width="120" height="100" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="2"/>
+  <rect x="196" y="238" width="120" height="28" rx="10" fill="#f97316"/>
+  <rect x="196" y="254" width="120" height="12" fill="#f97316"/>
+  <!-- Calendar header text lines -->
+  <rect x="218" y="246" width="76" height="8" rx="4" fill="#ffffff" opacity="0.9"/>
+  <!-- Calendar grid dots -->
+  <rect x="208" y="278" width="12" height="10" rx="2" fill="#cbd5e1"/>
+  <rect x="226" y="278" width="12" height="10" rx="2" fill="#cbd5e1"/>
+  <rect x="244" y="278" width="12" height="10" rx="2" fill="#cbd5e1"/>
+  <rect x="262" y="278" width="12" height="10" rx="2" fill="#94a3b8"/>
+  <rect x="280" y="278" width="12" height="10" rx="2" fill="#cbd5e1"/>
+  <rect x="298" y="278" width="12" height="10" rx="2" fill="#cbd5e1"/>
+  <rect x="208" y="294" width="12" height="10" rx="2" fill="#cbd5e1"/>
+  <rect x="226" y="294" width="12" height="10" rx="2" fill="#f97316" opacity="0.6"/>
+  <rect x="244" y="294" width="12" height="10" rx="2" fill="#cbd5e1"/>
+  <rect x="262" y="294" width="12" height="10" rx="2" fill="#cbd5e1"/>
+  <rect x="280" y="294" width="12" height="10" rx="2" fill="#cbd5e1"/>
+  <rect x="208" y="310" width="12" height="10" rx="2" fill="#cbd5e1"/>
+  <rect x="226" y="310" width="12" height="10" rx="2" fill="#cbd5e1"/>
+
+  <!-- Orange checkmark circle -->
+  <circle cx="300" cy="325" r="28" fill="#f97316"/>
+  <polyline points="288,325 297,335 314,314" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- Sparkles -->
+  <polygon points="355,105 359,118 372,118 362,126 366,139 355,131 344,139 348,126 338,118 351,118" fill="#fde68a"/>
+  <polygon points="385,68 387,75 394,75 388,79 390,86 385,82 380,86 382,79 376,75 383,75" fill="#fde68a"/>
 </svg>
