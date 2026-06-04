@@ -1,29 +1,23 @@
 {
-  "generatedAt": "2026-06-04T03:44:01.654Z",
+  "generatedAt": "2026-06-04T09:22:13.256Z",
   "entries": [
     {
-      "commit": "d576a305f28ed52bbc23f019468cb5fa1b0f534d",
-      "version": "d576a30",
-      "timestamp": "2026-06-04T03:43:03Z",
-      "message": "chore: plan to add PNG app icons"
+      "commit": "26330f4909855ccf49219a580dd9430f81d6af88",
+      "version": "26330f4",
+      "timestamp": "2026-06-04T06:04:16Z",
+      "message": "Merge pull request #6 from Spitfire09/copilot/implement-icon-files-as-app-icons"
+    },
+    {
+      "commit": "9764218796ed15d39bcd1b2477be09ed08464ed6",
+      "version": "9764218",
+      "timestamp": "2026-06-04T03:44:12Z",
+      "message": "feat: add icon-192x192.png and icon-512x512.png as PWA app icons"
     },
     {
       "commit": "2fb00bce293826a2750f8279f9cbdaa0679a61ba",
       "version": "2fb00bc",
       "timestamp": "2026-06-04T03:33:04Z",
       "message": "Merge pull request #5 from Spitfire09/copilot/farve-kokken-lukket-lys-roed"
-    },
-    {
-      "commit": "a9c5df78fc80c13d6cdbd01b23a766be8e706a3a",
-      "version": "a9c5df7",
-      "timestamp": "2026-06-04T03:30:54Z",
-      "message": "highlight kitchen-closed days with light red in meal overview"
-    },
-    {
-      "commit": "e4cc9d52a55045608b7e1b74477648a7d03296a1",
-      "version": "e4cc9d5",
-      "timestamp": "2026-06-03T20:00:20Z",
-      "message": "Merge pull request #4 from Spitfire09/copilot/minimer-toptekst-og-tilpas-bruger-indstillinger"
     }
   ]
 }

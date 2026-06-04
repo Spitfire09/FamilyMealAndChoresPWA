@@ -5,7 +5,6 @@ import './App.css'
 const FAMILY_MEMBERS = ['Tommy', 'Tanja', 'Magnus', 'Robert', 'Sara'] as const
 const STORAGE_KEY = 'family-meal-and-chores/v1'
 const PLANNING_DAYS = 10
-const APP_VERSION = __APP_VERSION__
 
 type FamilyMember = (typeof FAMILY_MEMBERS)[number]
 type AttendanceStatus = 'yes' | 'no' | 'pending'
@@ -410,11 +409,6 @@ function App() {
     [currentTime, planningDates, state.dateCreatedAt, state.mealPlan],
   )
 
-  const totalYes = planningDates.reduce((count, dateKey) => {
-    const day = state.mealPlan[dateKey]
-    return count + FAMILY_MEMBERS.filter((member) => day?.[member] === 'yes').length
-  }, 0)
-
   const pendingLateCount = lateWarnings.reduce((count, day) => count + day.pendingMembers.length, 0)
 
   const choreSummary = FAMILY_MEMBERS.map((member) => ({
@@ -542,17 +536,14 @@ function App() {
   return (
     <div className="app-shell">
       <header className="slim-header">
-        <span>
+        <span className="active-user-label">
           Aktiv bruger: <strong>{selectedMember}</strong>
         </span>
-        <span className="slim-header-right">
-          {updateReady && (
-            <button type="button" className="update-badge" onClick={reloadLatestVersion}>
-              Opdatering klar
-            </button>
-          )}
-          <span className="app-version">v{APP_VERSION}</span>
-        </span>
+        {updateReady && (
+          <button type="button" className="update-badge" onClick={reloadLatestVersion}>
+            Opdatering klar
+          </button>
+        )}
       </header>
 
       <div className="content-layout">
@@ -581,97 +572,94 @@ function App() {
         </nav>
 
         <div className="main-content">
-          <section className="summary-grid" aria-label="Overblik">
-            <article className="summary-card">
-              <span className="summary-label">Spiser med</span>
-              <strong>{totalYes}</strong>
-              <span>Bekræftede deltagere i den viste periode.</span>
-            </article>
-            <article className="summary-card warning">
-              <span className="summary-label">Manglende svar efter frist</span>
-              <strong>{pendingLateCount}</strong>
-              <span>Der logges automatisk, når fristen er overskredet.</span>
-            </article>
-          </section>
-
           {activeTab === 'meals' && (
-            <section className="panel">
-              <div className="section-heading">
-                <div>
-                  <h2>Aftensmad</h2>
-                  <p>Tryk på en dag for detaljer. Kun {selectedMember} kan meldes ind herfra.</p>
+            <>
+              <section className="summary-grid" aria-label="Overblik">
+                <article className="summary-card warning">
+                  <span className="summary-label">Manglende svar efter frist</span>
+                  <strong>{pendingLateCount}</strong>
+                  <span>Der logges automatisk, når fristen er overskredet.</span>
+                </article>
+              </section>
+
+              <section className="panel">
+                <div className="section-heading">
+                  <div>
+                    <h2>Aftensmad</h2>
+                    <p>Tryk på en dag for detaljer. Kun {selectedMember} kan meldes ind herfra.</p>
+                  </div>
+                  <span className="chip">Opdateret {formatDateTime(currentTime.toISOString())}</span>
                 </div>
-                <span className="chip">Opdateret {formatDateTime(currentTime.toISOString())}</span>
-              </div>
 
-              <div className="meal-grid">
-                {planningDates.map((dateKey) => {
-                  const day = state.mealPlan[dateKey] ?? createEmptyDay()
-                  const lateMembers =
-                    lateWarnings.find((warning) => warning.dateKey === dateKey)?.pendingMembers ?? []
-                  const yesMembers = FAMILY_MEMBERS.filter((member) => day[member] === 'yes')
-                  const noMembers = FAMILY_MEMBERS.filter((member) => day[member] === 'no')
-                  const pendingMembers = FAMILY_MEMBERS.filter((member) => day[member] === 'pending')
-                  const isExpanded = activeExpandedDay === dateKey
-                  const kitchenClosed = isKitchenClosed(dateKey, state.settings.kitchenClosed)
+                <div className="meal-grid">
+                  {planningDates.map((dateKey) => {
+                    const day = state.mealPlan[dateKey] ?? createEmptyDay()
+                    const lateMembers =
+                      lateWarnings.find((warning) => warning.dateKey === dateKey)?.pendingMembers ?? []
+                    const yesMembers = FAMILY_MEMBERS.filter((member) => day[member] === 'yes')
+                    const noMembers = FAMILY_MEMBERS.filter((member) => day[member] === 'no')
+                    const pendingMembers = FAMILY_MEMBERS.filter((member) => day[member] === 'pending')
+                    const isExpanded = activeExpandedDay === dateKey
+                    const kitchenClosed = isKitchenClosed(dateKey, state.settings.kitchenClosed)
 
-                  return (
-                    <article className={`meal-card${kitchenClosed ? ' kitchen-closed' : ''}`} key={dateKey}>
-                      <button
-                        type="button"
-                        className="meal-summary-button"
-                        onClick={() => setExpandedDay(isExpanded ? null : dateKey)}
-                        aria-expanded={isExpanded}
-                      >
-                        <div className="meal-card-header">
-                          <div>
-                            <h3>{formatDate(dateKey)}</h3>
-                            <p>Frist: {formatDeadlineDate(dateKey)}</p>
+                    return (
+                      <article className={`meal-card${kitchenClosed ? ' kitchen-closed' : ''}`} key={dateKey}>
+                        <button
+                          type="button"
+                          className="meal-summary-button"
+                          onClick={() => setExpandedDay(isExpanded ? null : dateKey)}
+                          aria-expanded={isExpanded}
+                        >
+                          <div className="meal-card-header">
+                            <div>
+                              <h3>{formatDate(dateKey)}</h3>
+                              <p>Frist: {formatDeadlineDate(dateKey)}</p>
+                            </div>
+                            {lateMembers.length > 0 ? (
+                              <span className="status-pill danger">{lateMembers.length} for sent</span>
+                            ) : (
+                              <span className="status-pill ok">Klar</span>
+                            )}
                           </div>
-                          {lateMembers.length > 0 ? (
-                            <span className="status-pill danger">{lateMembers.length} for sent</span>
-                          ) : (
-                            <span className="status-pill ok">Klar</span>
-                          )}
-                        </div>
 
-                        <div className="compact-status">
-                          <p>
-                            <strong>Ja:</strong> {yesMembers.join(', ') || 'Ingen endnu'}
-                          </p>
-                          <p>
-                            <strong>Nej:</strong> {noMembers.join(', ') || 'Ingen endnu'}
-                          </p>
-                          <p>
-                            <strong>Afventer:</strong> {pendingMembers.join(', ') || 'Ingen'}
-                          </p>
-                        </div>
-                      </button>
-
-                      {isExpanded && (
-                        <div className="meal-editor">
-                          <p>
-                            <strong>{selectedMember}</strong> · {statusLabels[day[selectedMember]]}
-                          </p>
-                          <div className="choice-group" role="group" aria-label={`${selectedMember} ${dateKey}`}>
-                            {statusChoices.map((status) => (
-                              <button
-                                key={status}
-                                type="button"
-                                className={`choice ${status} ${day[selectedMember] === status ? 'active' : ''}`}
-                                onClick={() => updateAttendance(dateKey, selectedMember, status)}
-                              >
-                                {status === 'yes' ? 'Ja' : status === 'no' ? 'Nej' : 'Uafklaret'}
-                              </button>
-                            ))}
+                          <div className="compact-status">
+                            <p>
+                              <strong>Ja:</strong> {yesMembers.join(', ') || 'Ingen endnu'}
+                            </p>
+                            <p>
+                              <strong>Nej:</strong> {noMembers.join(', ') || 'Ingen endnu'}
+                            </p>
+                            <p>
+                              <strong>Afventer:</strong> {pendingMembers.join(', ') || 'Ingen'}
+                            </p>
                           </div>
-                        </div>
-                      )}
-                    </article>
-                  )
-                })}
-              </div>
-            </section>
+                        </button>
+
+                        {isExpanded && (
+                          <div className="meal-editor">
+                            <p>
+                              <strong>{selectedMember}</strong> · {statusLabels[day[selectedMember]]}
+                            </p>
+                            <div className="choice-group" role="group" aria-label={`${selectedMember} ${dateKey}`}>
+                              {statusChoices.map((status) => (
+                                <button
+                                  key={status}
+                                  type="button"
+                                  className={`choice ${status} ${day[selectedMember] === status ? 'active' : ''}`}
+                                  onClick={() => updateAttendance(dateKey, selectedMember, status)}
+                                >
+                                  {status === 'yes' ? 'Ja' : status === 'no' ? 'Nej' : 'Uafklaret'}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </article>
+                    )
+                  })}
+                </div>
+              </section>
+            </>
           )}
 
           {activeTab === 'chores' && (
