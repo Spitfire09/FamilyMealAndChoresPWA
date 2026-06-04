@@ -1,23 +1,35 @@
 {
-  "generatedAt": "2026-06-04T09:22:13.256Z",
+  "generatedAt": "2026-06-04T10:37:53.121Z",
   "entries": [
+    {
+      "commit": "9d52a534f54e9b548f1298659687f7393b21a6bf",
+      "version": "9d52a53",
+      "timestamp": "2026-06-04T10:37:45Z",
+      "message": "feat: add selectable chore suggestions"
+    },
+    {
+      "commit": "81a19053fb33e619fd8405be6f031211ab288bf6",
+      "version": "81a1905",
+      "timestamp": "2026-06-04T10:37:22Z",
+      "message": "chore: start chore input update"
+    },
+    {
+      "commit": "2588ab41930e52a69e1f7c9efb9a28a74a220e1a",
+      "version": "2588ab4",
+      "timestamp": "2026-06-04T10:28:17Z",
+      "message": "Merge pull request #7 from Spitfire09/copilot/remove-spiser-med-box"
+    },
+    {
+      "commit": "b9b9a5b66652f808d9a222b059dfc91549abac01",
+      "version": "b9b9a5b",
+      "timestamp": "2026-06-04T09:23:44Z",
+      "message": "Adjust meal summary visibility and simplify header"
+    },
     {
       "commit": "26330f4909855ccf49219a580dd9430f81d6af88",
       "version": "26330f4",
       "timestamp": "2026-06-04T06:04:16Z",
       "message": "Merge pull request #6 from Spitfire09/copilot/implement-icon-files-as-app-icons"
-    },
-    {
-      "commit": "9764218796ed15d39bcd1b2477be09ed08464ed6",
-      "version": "9764218",
-      "timestamp": "2026-06-04T03:44:12Z",
-      "message": "feat: add icon-192x192.png and icon-512x512.png as PWA app icons"
-    },
-    {
-      "commit": "2fb00bce293826a2750f8279f9cbdaa0679a61ba",
-      "version": "2fb00bc",
-      "timestamp": "2026-06-04T03:33:04Z",
-      "message": "Merge pull request #5 from Spitfire09/copilot/farve-kokken-lukket-lys-roed"
     }
   ]
 }
