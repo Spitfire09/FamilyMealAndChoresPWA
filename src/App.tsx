@@ -613,9 +613,10 @@ function App() {
                   const noMembers = FAMILY_MEMBERS.filter((member) => day[member] === 'no')
                   const pendingMembers = FAMILY_MEMBERS.filter((member) => day[member] === 'pending')
                   const isExpanded = activeExpandedDay === dateKey
+                  const kitchenClosed = isKitchenClosed(dateKey, state.settings.kitchenClosed)
 
                   return (
-                    <article className="meal-card" key={dateKey}>
+                    <article className={`meal-card${kitchenClosed ? ' kitchen-closed' : ''}`} key={dateKey}>
                       <button
                         type="button"
                         className="meal-summary-button"

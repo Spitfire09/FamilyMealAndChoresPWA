@@ -184,6 +184,11 @@
   overflow: hidden;
 }
 
+.meal-card.kitchen-closed {
+  background: #ffe5e5;
+  border-color: #f5b8b8;
+}
+
 .meal-summary-button {
   width: 100%;
   border: 0;
