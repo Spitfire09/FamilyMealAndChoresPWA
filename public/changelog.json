@@ -1,6 +1,18 @@
 {
-  "generatedAt": "2026-06-04T10:37:14.301Z",
+  "generatedAt": "2026-06-04T10:37:53.121Z",
   "entries": [
+    {
+      "commit": "9d52a534f54e9b548f1298659687f7393b21a6bf",
+      "version": "9d52a53",
+      "timestamp": "2026-06-04T10:37:45Z",
+      "message": "feat: add selectable chore suggestions"
+    },
+    {
+      "commit": "81a19053fb33e619fd8405be6f031211ab288bf6",
+      "version": "81a1905",
+      "timestamp": "2026-06-04T10:37:22Z",
+      "message": "chore: start chore input update"
+    },
     {
       "commit": "2588ab41930e52a69e1f7c9efb9a28a74a220e1a",
       "version": "2588ab4",
