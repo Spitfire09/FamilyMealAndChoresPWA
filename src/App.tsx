@@ -3,6 +3,13 @@ import type { FormEvent } from 'react'
 import './App.css'
 
 const FAMILY_MEMBERS = ['Tommy', 'Tanja', 'Magnus', 'Robert', 'Sara'] as const
+const CHORE_OPTIONS = [
+  'Dække bord',
+  'Slå græs',
+  'Tømme opvaskemaskine',
+  'Ligge tøj sammen',
+  'Lave mad',
+] as const
 const STORAGE_KEY = 'family-meal-and-chores/v1'
 const PLANNING_DAYS = 10
 
@@ -693,9 +700,15 @@ function App() {
                   <input
                     type="text"
                     value={choreTask}
+                    list="chore-options"
                     onChange={(event) => setChoreTask(event.target.value)}
-                    placeholder="Fx dækkede bord, tømte opvasker eller gik med skrald"
+                    placeholder="Vælg fra listen eller skriv en pligt"
                   />
+                  <datalist id="chore-options">
+                    {CHORE_OPTIONS.map((task) => (
+                      <option key={task} value={task} />
+                    ))}
+                  </datalist>
                 </label>
                 <button type="submit" className="primary-button">
                   Gem pligt
