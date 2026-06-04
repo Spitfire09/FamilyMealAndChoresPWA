@@ -1,23 +1,29 @@
 {
-  "generatedAt": "2026-06-04T03:30:46.817Z",
+  "generatedAt": "2026-06-04T03:44:01.654Z",
   "entries": [
+    {
+      "commit": "d576a305f28ed52bbc23f019468cb5fa1b0f534d",
+      "version": "d576a30",
+      "timestamp": "2026-06-04T03:43:03Z",
+      "message": "chore: plan to add PNG app icons"
+    },
+    {
+      "commit": "2fb00bce293826a2750f8279f9cbdaa0679a61ba",
+      "version": "2fb00bc",
+      "timestamp": "2026-06-04T03:33:04Z",
+      "message": "Merge pull request #5 from Spitfire09/copilot/farve-kokken-lukket-lys-roed"
+    },
+    {
+      "commit": "a9c5df78fc80c13d6cdbd01b23a766be8e706a3a",
+      "version": "a9c5df7",
+      "timestamp": "2026-06-04T03:30:54Z",
+      "message": "highlight kitchen-closed days with light red in meal overview"
+    },
     {
       "commit": "e4cc9d52a55045608b7e1b74477648a7d03296a1",
       "version": "e4cc9d5",
       "timestamp": "2026-06-03T20:00:20Z",
       "message": "Merge pull request #4 from Spitfire09/copilot/minimer-toptekst-og-tilpas-bruger-indstillinger"
-    },
-    {
-      "commit": "a0bdc9983253e85a74a8199dfa1f4bab688ba327",
-      "version": "a0bdc99",
-      "timestamp": "2026-06-03T16:42:03Z",
-      "message": "feat: slim header, sidebar tabs, user schedules & kitchen closed settings"
-    },
-    {
-      "commit": "6fea90e2de966e14c6ce94c1e0248aa37d7194c2",
-      "version": "6fea90e",
-      "timestamp": "2026-06-03T15:32:01Z",
-      "message": "Merge pull request #3 from Spitfire09/copilot/optimer-mobil-afvikling"
     }
   ]
 }
