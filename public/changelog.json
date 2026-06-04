@@ -1,23 +1,23 @@
 {
-  "generatedAt": "2026-06-03T16:41:02.140Z",
+  "generatedAt": "2026-06-04T03:30:46.817Z",
   "entries": [
+    {
+      "commit": "e4cc9d52a55045608b7e1b74477648a7d03296a1",
+      "version": "e4cc9d5",
+      "timestamp": "2026-06-03T20:00:20Z",
+      "message": "Merge pull request #4 from Spitfire09/copilot/minimer-toptekst-og-tilpas-bruger-indstillinger"
+    },
+    {
+      "commit": "a0bdc9983253e85a74a8199dfa1f4bab688ba327",
+      "version": "a0bdc99",
+      "timestamp": "2026-06-03T16:42:03Z",
+      "message": "feat: slim header, sidebar tabs, user schedules & kitchen closed settings"
+    },
     {
       "commit": "6fea90e2de966e14c6ce94c1e0248aa37d7194c2",
       "version": "6fea90e",
       "timestamp": "2026-06-03T15:32:01Z",
       "message": "Merge pull request #3 from Spitfire09/copilot/optimer-mobil-afvikling"
-    },
-    {
-      "commit": "82185fdf0ce9be4f00f4f1d4418999bbad3c890d",
-      "version": "82185fd",
-      "timestamp": "2026-06-03T15:28:13Z",
-      "message": "Fix meal day expansion state handling"
-    },
-    {
-      "commit": "9495cbf36cf7eb3d6439cb538854447828cd2635",
-      "version": "9495cbf",
-      "timestamp": "2026-06-03T15:10:44Z",
-      "message": "Merge pull request #2 from Spitfire09/copilot/add-changelog-and-auto-update"
     }
   ]
 }
