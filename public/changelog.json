@@ -1,23 +1,23 @@
 {
-  "generatedAt": "2026-06-05T18:05:23.394Z",
+  "generatedAt": "2026-06-05T18:36:02.159Z",
   "entries": [
     {
-      "commit": "adb7c5bbc8daa9bf467578bd6366e6076a59bd6b",
-      "version": "adb7c5b",
-      "timestamp": "2026-06-05T17:52:50Z",
-      "message": "Merge pull request #11 from Spitfire09/copilot/add-default-cook-setting"
+      "commit": "764c129fbcd4445940cd33d1b6973269ed7aeb79",
+      "version": "764c129",
+      "timestamp": "2026-06-05T18:14:30Z",
+      "message": "Merge pull request #14 from Spitfire09/copilot/add-google-sheet-integration"
     },
     {
-      "commit": "8f0ae6a1b7da84c75f7e5b2e27e12f15fd37f1a6",
-      "version": "8f0ae6a",
-      "timestamp": "2026-06-05T17:26:37Z",
-      "message": "Add default and per-day cook person selection"
+      "commit": "ee4dc48aec0a0c9b3d8d6834dd6d043a2b54262d",
+      "version": "ee4dc48",
+      "timestamp": "2026-06-05T18:14:15Z",
+      "message": "Merge branch 'main' into copilot/add-google-sheet-integration"
     },
     {
-      "commit": "fa467f239f30003881f6d34667d2bcad7bb31ce9",
-      "version": "fa467f2",
-      "timestamp": "2026-06-05T12:41:47Z",
-      "message": "Merge pull request #10 from Spitfire09/copilot/add-dinner-notification"
+      "commit": "dc1115a2416b77766013bc87375bc405e5857aab",
+      "version": "dc1115a",
+      "timestamp": "2026-06-05T18:05:14Z",
+      "message": "Merge pull request #13 from Spitfire09/copilot/manglende-svar-efter-frist"
     }
   ]
 }
