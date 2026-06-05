@@ -124,25 +124,49 @@ function addDays(date: Date, days: number) {
   return copy
 }
 
+function parseValidDate(dateValue: unknown) {
+  if (typeof dateValue !== 'string' || !dateValue) {
+    return null
+  }
+
+  const parsedDate = new Date(dateValue)
+  return Number.isFinite(parsedDate.getTime()) ? parsedDate : null
+}
+
 function formatDate(dateKey: string) {
+  const parsedDate = parseValidDate(`${dateKey}T12:00:00`)
+  if (!parsedDate) {
+    return dateKey
+  }
+
   return new Intl.DateTimeFormat('da-DK', {
     weekday: 'short',
     day: 'numeric',
     month: 'long',
-  }).format(new Date(`${dateKey}T12:00:00`))
+  }).format(parsedDate)
 }
 
-function formatDateTime(dateValue: string) {
+function formatDateTime(dateValue: string | null | undefined) {
+  const parsedDate = parseValidDate(dateValue)
+  if (!parsedDate) {
+    return 'Ukendt tidspunkt'
+  }
+
   return new Intl.DateTimeFormat('da-DK', {
     day: 'numeric',
     month: 'short',
     hour: '2-digit',
     minute: '2-digit',
-  }).format(new Date(dateValue))
+  }).format(parsedDate)
 }
 
 function formatDeadlineDate(dateKey: string) {
-  return formatDate(toDateKey(addDays(new Date(`${dateKey}T12:00:00`), -1)))
+  const parsedDate = parseValidDate(`${dateKey}T12:00:00`)
+  if (!parsedDate) {
+    return dateKey
+  }
+
+  return formatDate(toDateKey(addDays(parsedDate, -1)))
 }
 
 function getISOWeekNumber(date: Date): number {
