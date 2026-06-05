@@ -1,35 +1,23 @@
 {
-  "generatedAt": "2026-06-04T10:37:53.121Z",
+  "generatedAt": "2026-06-05T07:36:18.336Z",
   "entries": [
     {
-      "commit": "9d52a534f54e9b548f1298659687f7393b21a6bf",
-      "version": "9d52a53",
-      "timestamp": "2026-06-04T10:37:45Z",
-      "message": "feat: add selectable chore suggestions"
+      "commit": "df53599d2516e2f02b04401ec099ef0029a4c094",
+      "version": "df53599",
+      "timestamp": "2026-06-04T11:46:37Z",
+      "message": "Merge pull request #8 from Spitfire09/copilot/add-pligt-til-list"
     },
     {
-      "commit": "81a19053fb33e619fd8405be6f031211ab288bf6",
-      "version": "81a1905",
-      "timestamp": "2026-06-04T10:37:22Z",
-      "message": "chore: start chore input update"
+      "commit": "375124ca57f6371710beaabac99f98679e18b7cf",
+      "version": "375124c",
+      "timestamp": "2026-06-04T10:38:17Z",
+      "message": "chore: refresh generated changelog"
     },
     {
       "commit": "2588ab41930e52a69e1f7c9efb9a28a74a220e1a",
       "version": "2588ab4",
       "timestamp": "2026-06-04T10:28:17Z",
       "message": "Merge pull request #7 from Spitfire09/copilot/remove-spiser-med-box"
-    },
-    {
-      "commit": "b9b9a5b66652f808d9a222b059dfc91549abac01",
-      "version": "b9b9a5b",
-      "timestamp": "2026-06-04T09:23:44Z",
-      "message": "Adjust meal summary visibility and simplify header"
-    },
-    {
-      "commit": "26330f4909855ccf49219a580dd9430f81d6af88",
-      "version": "26330f4",
-      "timestamp": "2026-06-04T06:04:16Z",
-      "message": "Merge pull request #6 from Spitfire09/copilot/implement-icon-files-as-app-icons"
     }
   ]
 }
