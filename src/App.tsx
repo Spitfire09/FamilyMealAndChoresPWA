@@ -109,6 +109,7 @@ const DAY_NAMES: Record<number, string> = {
 }
 
 const WEEK_DAYS_ORDER: DayOfWeek[] = [1, 2, 3, 4, 5, 6, 0]
+const DATE_KEY_PATTERN = /^\d{4}-\d{2}-\d{2}$/
 
 function toDateKey(date: Date) {
   const year = date.getFullYear()
@@ -131,6 +132,189 @@ function parseValidDate(dateValue: unknown) {
 
   const parsedDate = new Date(dateValue)
   return Number.isFinite(parsedDate.getTime()) ? parsedDate : null
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
+}
+
+function isFamilyMember(value: unknown): value is FamilyMember {
+  return typeof value === 'string' && FAMILY_MEMBERS.includes(value as FamilyMember)
+}
+
+function isAttendanceStatus(value: unknown): value is AttendanceStatus {
+  return value === 'yes' || value === 'no' || value === 'pending'
+}
+
+function normalizeDateKey(dateValue: unknown) {
+  if (typeof dateValue !== 'string' || !dateValue) {
+    return null
+  }
+  if (DATE_KEY_PATTERN.test(dateValue)) {
+    return dateValue
+  }
+  const parsedDate = parseValidDate(dateValue)
+  return parsedDate ? toDateKey(parsedDate) : null
+}
+
+function normalizeTimestamp(timestampValue: unknown) {
+  const parsedDate = parseValidDate(timestampValue)
+  return parsedDate ? parsedDate.toISOString() : null
+}
+
+function pickEarliestTimestamp(timestampA: string | undefined, timestampB: string | undefined) {
+  const normalizedA = normalizeTimestamp(timestampA)
+  const normalizedB = normalizeTimestamp(timestampB)
+  if (!normalizedA) return normalizedB
+  if (!normalizedB) return normalizedA
+  return normalizedA <= normalizedB ? normalizedA : normalizedB
+}
+
+function normalizeMealPlan(rawMealPlan: unknown): MealPlan {
+  if (!isRecord(rawMealPlan)) {
+    return {}
+  }
+
+  const normalized: MealPlan = {}
+
+  for (const [rawDateKey, rawDay] of Object.entries(rawMealPlan)) {
+    const dateKey = normalizeDateKey(rawDateKey)
+    if (!dateKey || !isRecord(rawDay)) {
+      continue
+    }
+
+    const existingDay = normalized[dateKey] ?? createEmptyDay()
+    const nextDay = { ...existingDay }
+
+    for (const member of FAMILY_MEMBERS) {
+      const status = rawDay[member]
+      if (isAttendanceStatus(status)) {
+        nextDay[member] = status
+      }
+    }
+
+    normalized[dateKey] = nextDay
+  }
+
+  return normalized
+}
+
+function normalizeDayOverrides(rawDayOverrides: unknown): Record<string, MealDayOverride> {
+  if (!isRecord(rawDayOverrides)) {
+    return {}
+  }
+
+  const normalized: Record<string, MealDayOverride> = {}
+
+  for (const [rawDateKey, rawOverride] of Object.entries(rawDayOverrides)) {
+    const dateKey = normalizeDateKey(rawDateKey)
+    if (!dateKey || !isRecord(rawOverride)) {
+      continue
+    }
+
+    const override: MealDayOverride = {}
+    if (typeof rawOverride.kitchenClosed === 'boolean') {
+      override.kitchenClosed = rawOverride.kitchenClosed
+    }
+    if (typeof rawOverride.mealTime === 'string') {
+      override.mealTime = rawOverride.mealTime
+    }
+    if (isFamilyMember(rawOverride.cookPerson)) {
+      override.cookPerson = rawOverride.cookPerson
+    }
+
+    normalized[dateKey] = { ...(normalized[dateKey] ?? {}), ...override }
+  }
+
+  return normalized
+}
+
+function normalizeDateCreatedAt(rawDateCreatedAt: unknown): Record<string, string> {
+  if (!isRecord(rawDateCreatedAt)) {
+    return {}
+  }
+
+  const normalized: Record<string, string> = {}
+
+  for (const [rawDateKey, rawTimestamp] of Object.entries(rawDateCreatedAt)) {
+    const dateKey = normalizeDateKey(rawDateKey)
+    const timestamp = normalizeTimestamp(rawTimestamp)
+    if (!dateKey || !timestamp) {
+      continue
+    }
+
+    const earliest = pickEarliestTimestamp(normalized[dateKey], timestamp)
+    if (earliest) {
+      normalized[dateKey] = earliest
+    }
+  }
+
+  return normalized
+}
+
+function normalizeLateLogs(rawLateLogs: unknown): LateLogEntry[] {
+  if (!Array.isArray(rawLateLogs)) {
+    return []
+  }
+
+  const uniqueById = new Map<string, LateLogEntry>()
+
+  for (const rawEntry of rawLateLogs) {
+    if (!isRecord(rawEntry) || !isFamilyMember(rawEntry.person)) {
+      continue
+    }
+
+    const mealDate = normalizeDateKey(rawEntry.mealDate)
+    const loggedAt = normalizeTimestamp(rawEntry.loggedAt)
+    if (!mealDate || !loggedAt) {
+      continue
+    }
+
+    const id = `${mealDate}:${rawEntry.person}`
+    const existing = uniqueById.get(id)
+
+    if (!existing || loggedAt < existing.loggedAt) {
+      uniqueById.set(id, {
+        id,
+        mealDate,
+        person: rawEntry.person,
+        loggedAt,
+      })
+    }
+  }
+
+  return Array.from(uniqueById.values())
+}
+
+function normalizeChoreLogs(rawChoreLogs: unknown): ChoreLogEntry[] {
+  if (!Array.isArray(rawChoreLogs)) {
+    return []
+  }
+
+  return rawChoreLogs.flatMap((rawEntry, index) => {
+    if (!isRecord(rawEntry) || !isFamilyMember(rawEntry.person) || typeof rawEntry.task !== 'string') {
+      return []
+    }
+
+    const notedAt = normalizeTimestamp(rawEntry.notedAt)
+    if (!notedAt) {
+      return []
+    }
+
+    const id =
+      typeof rawEntry.id === 'string' && rawEntry.id
+        ? rawEntry.id
+        : `${rawEntry.person}:${rawEntry.task}:${notedAt}:${index}`
+
+    return [
+      {
+        id,
+        person: rawEntry.person,
+        task: rawEntry.task,
+        notedAt,
+      },
+    ]
+  })
 }
 
 function formatDate(dateKey: string) {
@@ -406,31 +590,43 @@ async function callGoogleScript(
 }
 
 function mergeRemoteState(local: AppState, remote: Partial<AppState>, now: Date): AppState {
+  const localMealPlan = normalizeMealPlan(local.mealPlan)
+  const remoteMealPlan = normalizeMealPlan(remote.mealPlan)
+  const localDayOverrides = normalizeDayOverrides(local.dayOverrides)
+  const remoteDayOverrides = normalizeDayOverrides(remote.dayOverrides)
+  const localDateCreatedAt = normalizeDateCreatedAt(local.dateCreatedAt)
+  const remoteDateCreatedAt = normalizeDateCreatedAt(remote.dateCreatedAt)
+  const localLateLogs = normalizeLateLogs(local.lateLogs)
+  const remoteLateLogs = normalizeLateLogs(remote.lateLogs)
+  const localChoreLogs = normalizeChoreLogs(local.choreLogs)
+  const remoteChoreLogs = normalizeChoreLogs(remote.choreLogs)
+
   // mealPlan: remote wins for shared dates; keep local-only dates
-  const mealPlan: MealPlan = { ...local.mealPlan, ...(remote.mealPlan ?? {}) }
+  const mealPlan: MealPlan = { ...localMealPlan, ...remoteMealPlan }
 
   // dayOverrides: remote wins
-  const dayOverrides = { ...local.dayOverrides, ...(remote.dayOverrides ?? {}) }
+  const dayOverrides = { ...localDayOverrides, ...remoteDayOverrides }
 
   // dateCreatedAt: earliest creation timestamp wins
-  const dateCreatedAt = { ...local.dateCreatedAt }
-  for (const [key, ts] of Object.entries(remote.dateCreatedAt ?? {})) {
-    if (!dateCreatedAt[key] || ts < dateCreatedAt[key]) {
-      dateCreatedAt[key] = ts
+  const dateCreatedAt = { ...localDateCreatedAt }
+  for (const [key, ts] of Object.entries(remoteDateCreatedAt)) {
+    const earliest = pickEarliestTimestamp(dateCreatedAt[key], ts)
+    if (earliest) {
+      dateCreatedAt[key] = earliest
     }
   }
 
   // lateLogs and choreLogs: union by id
-  const localLateIds = new Set(local.lateLogs.map((e) => e.id))
+  const localLateIds = new Set(localLateLogs.map((e) => e.id))
   const lateLogs = [
-    ...local.lateLogs,
-    ...(remote.lateLogs ?? []).filter((e) => !localLateIds.has(e.id)),
+    ...localLateLogs,
+    ...remoteLateLogs.filter((e) => !localLateIds.has(e.id)),
   ]
 
-  const localChoreIds = new Set(local.choreLogs.map((e) => e.id))
+  const localChoreIds = new Set(localChoreLogs.map((e) => e.id))
   const choreLogs = [
-    ...local.choreLogs,
-    ...(remote.choreLogs ?? []).filter((e) => !localChoreIds.has(e.id)),
+    ...localChoreLogs,
+    ...remoteChoreLogs.filter((e) => !localChoreIds.has(e.id)),
   ]
 
   // settings: remote wins where defined
@@ -476,11 +672,11 @@ function loadState() {
 
     return reconcileState(
       {
-        mealPlan: parsed.mealPlan ?? {},
-        dayOverrides: parsed.dayOverrides ?? {},
-        dateCreatedAt: parsed.dateCreatedAt ?? {},
-        lateLogs: parsed.lateLogs ?? [],
-        choreLogs: parsed.choreLogs ?? [],
+        mealPlan: normalizeMealPlan(parsed.mealPlan),
+        dayOverrides: normalizeDayOverrides(parsed.dayOverrides),
+        dateCreatedAt: normalizeDateCreatedAt(parsed.dateCreatedAt),
+        lateLogs: normalizeLateLogs(parsed.lateLogs),
+        choreLogs: normalizeChoreLogs(parsed.choreLogs),
         settings: {
           ...createDefaultSettings(),
           ...(parsed.settings ?? {}),
