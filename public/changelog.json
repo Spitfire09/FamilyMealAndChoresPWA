@@ -1,23 +1,23 @@
 {
-  "generatedAt": "2026-06-05T18:36:02.159Z",
+  "generatedAt": "2026-06-05T18:49:34.807Z",
   "entries": [
+    {
+      "commit": "ee1be6434036f11cd8d061101c5adc7577600cd0",
+      "version": "ee1be64",
+      "timestamp": "2026-06-05T18:39:04Z",
+      "message": "Merge pull request #15 from Spitfire09/copilot/fix-settings-tab-error"
+    },
+    {
+      "commit": "907913a3958b1aae584b2f66ab27fb3c77704ef5",
+      "version": "907913a",
+      "timestamp": "2026-06-05T18:37:52Z",
+      "message": "Handle invalid date values in settings formatting"
+    },
     {
       "commit": "764c129fbcd4445940cd33d1b6973269ed7aeb79",
       "version": "764c129",
       "timestamp": "2026-06-05T18:14:30Z",
       "message": "Merge pull request #14 from Spitfire09/copilot/add-google-sheet-integration"
-    },
-    {
-      "commit": "ee4dc48aec0a0c9b3d8d6834dd6d043a2b54262d",
-      "version": "ee4dc48",
-      "timestamp": "2026-06-05T18:14:15Z",
-      "message": "Merge branch 'main' into copilot/add-google-sheet-integration"
-    },
-    {
-      "commit": "dc1115a2416b77766013bc87375bc405e5857aab",
-      "version": "dc1115a",
-      "timestamp": "2026-06-05T18:05:14Z",
-      "message": "Merge pull request #13 from Spitfire09/copilot/manglende-svar-efter-frist"
     }
   ]
 }
