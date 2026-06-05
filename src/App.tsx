@@ -66,6 +66,7 @@ type AppSettings = {
   userSchedules: Partial<Record<FamilyMember, UserSchedule>>
   kitchenClosed: KitchenClosedRule[]
   admins: Partial<Record<FamilyMember, boolean>>
+  mealReminders: Partial<Record<FamilyMember, boolean>>
 }
 
 type AppState = {
@@ -75,6 +76,7 @@ type AppState = {
   lateLogs: LateLogEntry[]
   choreLogs: ChoreLogEntry[]
   settings: AppSettings
+  reminderSentAt: Record<string, string>
 }
 
 const statusLabels: Record<AttendanceStatus, string> = {
@@ -190,7 +192,7 @@ function createDefaultPartTimeSchedule(): PartTimeSchedule {
 }
 
 function createDefaultSettings(): AppSettings {
-  return { userSchedules: {}, kitchenClosed: [], admins: {} }
+  return { userSchedules: {}, kitchenClosed: [], admins: {}, mealReminders: {} }
 }
 
 function createDayForDate(
@@ -319,6 +321,7 @@ function createInitialState(now: Date): AppState {
       lateLogs: [],
       choreLogs: [],
       settings: createDefaultSettings(),
+      reminderSentAt: {},
     },
     now,
   )
@@ -343,10 +346,12 @@ function loadState() {
         dateCreatedAt: parsed.dateCreatedAt ?? {},
         lateLogs: parsed.lateLogs ?? [],
         choreLogs: parsed.choreLogs ?? [],
+        reminderSentAt: parsed.reminderSentAt ?? {},
         settings: {
           ...createDefaultSettings(),
           ...(parsed.settings ?? {}),
           admins: parsed.settings?.admins ?? {},
+          mealReminders: parsed.settings?.mealReminders ?? {},
         },
       },
       now,
@@ -369,6 +374,10 @@ function App() {
   const [applyUpdate, setApplyUpdate] = useState<((reloadPage?: boolean) => Promise<void>) | null>(null)
   const [newKitchenDow, setNewKitchenDow] = useState<DayOfWeek>(5)
   const [newKitchenParity, setNewKitchenParity] = useState<'always' | WeekParity>('odd')
+  const notificationsSupported = typeof window !== 'undefined' && 'Notification' in window
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>(() =>
+    notificationsSupported ? Notification.permission : 'denied',
+  )
   const isSelectedMemberAdmin = Boolean(state.settings.admins[selectedMember])
 
   useEffect(() => {
@@ -427,6 +436,56 @@ function App() {
 
     return () => window.clearInterval(timer)
   }, [])
+
+  useEffect(() => {
+    if (!notificationsSupported || Notification.permission !== 'granted') {
+      return
+    }
+
+    const reminderTime = new Date(currentTime)
+    reminderTime.setHours(17, 30, 0, 0)
+
+    if (currentTime < reminderTime) {
+      return
+    }
+
+    const tomorrowKey = toDateKey(addDays(currentTime, 1))
+    const tomorrowPlan = state.mealPlan[tomorrowKey]
+
+    if (!tomorrowPlan) {
+      return
+    }
+
+    const sentEntries: Record<string, string> = {}
+    const sentAt = currentTime.toISOString()
+    const dayKey = toDateKey(currentTime)
+
+    for (const member of FAMILY_MEMBERS) {
+      if (!state.settings.mealReminders[member] || tomorrowPlan[member] !== 'pending') {
+        continue
+      }
+
+      const reminderId = `${dayKey}:${member}:${tomorrowKey}`
+
+      if (state.reminderSentAt[reminderId]) {
+        continue
+      }
+
+      new Notification('Påmindelse: Aftensmad i morgen', {
+        body: `${member}, husk at melde ind for ${formatDate(tomorrowKey)}.`,
+        tag: reminderId,
+      })
+
+      sentEntries[reminderId] = sentAt
+    }
+
+    if (Object.keys(sentEntries).length > 0) {
+      setState((previous) => ({
+        ...previous,
+        reminderSentAt: { ...previous.reminderSentAt, ...sentEntries },
+      }))
+    }
+  }, [currentTime, notificationsSupported, state.mealPlan, state.reminderSentAt, state.settings.mealReminders])
 
   const planningDates = useMemo(() => buildPlanningDates(currentTime), [currentTime])
 
@@ -572,6 +631,47 @@ function App() {
 
   function updateSettings(updater: (prev: AppSettings) => AppSettings) {
     setState((prev) => reconcileState({ ...prev, settings: updater(prev.settings) }, new Date()))
+  }
+
+  async function requestNotificationPermission() {
+    if (!notificationsSupported) {
+      return false
+    }
+
+    if (Notification.permission === 'granted') {
+      setNotificationPermission('granted')
+      return true
+    }
+
+    const permission = await Notification.requestPermission()
+    setNotificationPermission(permission)
+    return permission === 'granted'
+  }
+
+  async function setMealReminderEnabled(member: FamilyMember, enabled: boolean) {
+    if (!enabled) {
+      updateSettings((prev) => ({
+        ...prev,
+        mealReminders: { ...prev.mealReminders, [member]: false },
+      }))
+      return
+    }
+
+    if (!notificationsSupported) {
+      window.alert('Din browser understøtter ikke notifikationer.')
+      return
+    }
+
+    const granted = await requestNotificationPermission()
+    if (!granted) {
+      window.alert('Tillad notifikationer i browseren for at aktivere denne påmindelse.')
+      return
+    }
+
+    updateSettings((prev) => ({
+      ...prev,
+      mealReminders: { ...prev.mealReminders, [member]: true },
+    }))
   }
 
   function setUserScheduleType(member: FamilyMember, type: 'fulltime' | 'parttime') {
@@ -893,6 +993,17 @@ function App() {
                 >
                   {updateReady ? 'Ny version klar · genindlæs' : 'Genindlæs appen'}
                 </button>
+                {notificationsSupported && notificationPermission !== 'granted' && (
+                  <button
+                    type="button"
+                    className="primary-button utility-button"
+                    onClick={() => {
+                      void requestNotificationPermission()
+                    }}
+                  >
+                    Tillad browser-notifikationer
+                  </button>
+                )}
               </div>
 
               <div className="settings-section">
@@ -934,6 +1045,17 @@ function App() {
                           onChange={(event) => setMemberAdmin(member, event.target.checked)}
                         />
                         Administrator
+                      </label>
+                      <label className="admin-toggle">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(state.settings.mealReminders[member])}
+                          disabled={!notificationsSupported}
+                          onChange={(event) => {
+                            void setMealReminderEnabled(member, event.target.checked)
+                          }}
+                        />
+                        Påmindelse kl. 17:30 hvis i morgen er uafklaret
                       </label>
 
                       {schedule.type === 'parttime' && (
