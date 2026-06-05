@@ -1,6 +1,18 @@
 {
-  "generatedAt": "2026-06-05T07:36:18.336Z",
+  "generatedAt": "2026-06-05T07:37:41.246Z",
   "entries": [
+    {
+      "commit": "ef271224ea5bc60fbe5f457f1b0ef0cace00c792",
+      "version": "ef27122",
+      "timestamp": "2026-06-05T07:37:35Z",
+      "message": "Add admin role and day-specific meal controls"
+    },
+    {
+      "commit": "837252d3e8555958396b823c2d28dc5f84f0a194",
+      "version": "837252d",
+      "timestamp": "2026-06-05T07:36:26Z",
+      "message": "Plan admin controls for meal settings"
+    },
     {
       "commit": "df53599d2516e2f02b04401ec099ef0029a4c094",
       "version": "df53599",
