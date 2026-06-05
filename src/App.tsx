@@ -1022,10 +1022,8 @@ function App() {
           {activeTab === 'meals' && (
             <>
               <section className="summary-grid" aria-label="Overblik">
-                <article className="summary-card warning">
-                  <span className="summary-label">Manglende svar efter frist</span>
-                  <strong>{pendingLateCount}</strong>
-                  <span>Der logges automatisk, når fristen er overskredet.</span>
+                <article className="summary-card warning compact">
+                  <span className="summary-inline">Manglende svar efter frist [{pendingLateCount}]</span>
                 </article>
                 {googleSyncConfig.scriptUrl && (
                   <article className="summary-card sync-status-card">
