@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import './App.css'
 
@@ -11,6 +11,7 @@ const CHORE_OPTIONS = [
   'Lave mad',
 ] as const
 const STORAGE_KEY = 'family-meal-and-chores/v1'
+const REMINDER_LOG_KEY = 'family-meal-and-chores/reminders/v1'
 const PLANNING_DAYS = 10
 
 type FamilyMember = (typeof FAMILY_MEMBERS)[number]
@@ -76,7 +77,6 @@ type AppState = {
   lateLogs: LateLogEntry[]
   choreLogs: ChoreLogEntry[]
   settings: AppSettings
-  reminderSentAt: Record<string, string>
 }
 
 const statusLabels: Record<AttendanceStatus, string> = {
@@ -321,10 +321,18 @@ function createInitialState(now: Date): AppState {
       lateLogs: [],
       choreLogs: [],
       settings: createDefaultSettings(),
-      reminderSentAt: {},
     },
     now,
   )
+}
+
+function loadReminderLog() {
+  try {
+    const raw = window.localStorage.getItem(REMINDER_LOG_KEY)
+    return raw ? (JSON.parse(raw) as Record<string, string>) : {}
+  } catch {
+    return {}
+  }
 }
 
 function loadState() {
@@ -346,7 +354,6 @@ function loadState() {
         dateCreatedAt: parsed.dateCreatedAt ?? {},
         lateLogs: parsed.lateLogs ?? [],
         choreLogs: parsed.choreLogs ?? [],
-        reminderSentAt: parsed.reminderSentAt ?? {},
         settings: {
           ...createDefaultSettings(),
           ...(parsed.settings ?? {}),
@@ -375,6 +382,7 @@ function App() {
   const [newKitchenDow, setNewKitchenDow] = useState<DayOfWeek>(5)
   const [newKitchenParity, setNewKitchenParity] = useState<'always' | WeekParity>('odd')
   const notificationsSupported = typeof window !== 'undefined' && 'Notification' in window
+  const reminderSentRef = useRef<Record<string, string>>({})
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>(() =>
     notificationsSupported ? Notification.permission : 'denied',
   )
@@ -383,6 +391,10 @@ function App() {
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
   }, [state])
+
+  useEffect(() => {
+    reminderSentRef.current = loadReminderLog()
+  }, [])
 
   useEffect(() => {
     let active = true
@@ -467,7 +479,7 @@ function App() {
 
       const reminderId = `${dayKey}:${member}:${tomorrowKey}`
 
-      if (state.reminderSentAt[reminderId]) {
+      if (reminderSentRef.current[reminderId]) {
         continue
       }
 
@@ -480,12 +492,10 @@ function App() {
     }
 
     if (Object.keys(sentEntries).length > 0) {
-      setState((previous) => ({
-        ...previous,
-        reminderSentAt: { ...previous.reminderSentAt, ...sentEntries },
-      }))
+      reminderSentRef.current = { ...reminderSentRef.current, ...sentEntries }
+      window.localStorage.setItem(REMINDER_LOG_KEY, JSON.stringify(reminderSentRef.current))
     }
-  }, [currentTime, notificationsSupported, state.mealPlan, state.reminderSentAt, state.settings.mealReminders])
+  }, [currentTime, notificationsSupported, state.mealPlan, state.settings.mealReminders])
 
   const planningDates = useMemo(() => buildPlanningDates(currentTime), [currentTime])
 
