@@ -81,6 +81,15 @@ type AppState = {
   settings: AppSettings
 }
 
+type GoogleSyncConfig = {
+  scriptUrl: string
+  password: string
+}
+
+type SyncStatus = 'idle' | 'syncing' | 'success' | 'error'
+
+const GOOGLE_SYNC_CONFIG_KEY = 'family-meal-and-chores/google-sync/v1'
+
 const statusLabels: Record<AttendanceStatus, string> = {
   yes: 'Spiser med',
   no: 'Spiser ikke med',
@@ -342,6 +351,84 @@ function createInitialState(now: Date): AppState {
   )
 }
 
+function loadGoogleSyncConfig(): GoogleSyncConfig {
+  try {
+    const raw = window.localStorage.getItem(GOOGLE_SYNC_CONFIG_KEY)
+    return raw ? (JSON.parse(raw) as GoogleSyncConfig) : { scriptUrl: '', password: '' }
+  } catch {
+    return { scriptUrl: '', password: '' }
+  }
+}
+
+function saveGoogleSyncConfig(config: GoogleSyncConfig) {
+  window.localStorage.setItem(GOOGLE_SYNC_CONFIG_KEY, JSON.stringify(config))
+}
+
+async function callGoogleScript(
+  config: GoogleSyncConfig,
+  action: 'test' | 'push' | 'pull',
+  data?: AppState,
+): Promise<{ ok: boolean; data?: Partial<AppState>; error?: string }> {
+  const response = await fetch(config.scriptUrl, {
+    method: 'POST',
+    // text/plain avoids CORS preflight while Google Apps Script still receives the body
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ password: config.password, action, data }),
+  })
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+  }
+  return response.json() as Promise<{ ok: boolean; data?: Partial<AppState>; error?: string }>
+}
+
+function mergeRemoteState(local: AppState, remote: Partial<AppState>, now: Date): AppState {
+  // mealPlan: remote wins for shared dates; keep local-only dates
+  const mealPlan: MealPlan = { ...local.mealPlan, ...(remote.mealPlan ?? {}) }
+
+  // dayOverrides: remote wins
+  const dayOverrides = { ...local.dayOverrides, ...(remote.dayOverrides ?? {}) }
+
+  // dateCreatedAt: earliest creation timestamp wins
+  const dateCreatedAt = { ...local.dateCreatedAt }
+  for (const [key, ts] of Object.entries(remote.dateCreatedAt ?? {})) {
+    if (!dateCreatedAt[key] || ts < dateCreatedAt[key]) {
+      dateCreatedAt[key] = ts
+    }
+  }
+
+  // lateLogs and choreLogs: union by id
+  const localLateIds = new Set(local.lateLogs.map((e) => e.id))
+  const lateLogs = [
+    ...local.lateLogs,
+    ...(remote.lateLogs ?? []).filter((e) => !localLateIds.has(e.id)),
+  ]
+
+  const localChoreIds = new Set(local.choreLogs.map((e) => e.id))
+  const choreLogs = [
+    ...local.choreLogs,
+    ...(remote.choreLogs ?? []).filter((e) => !localChoreIds.has(e.id)),
+  ]
+
+  // settings: remote wins where defined
+  const settings: AppSettings = remote.settings
+    ? {
+        ...createDefaultSettings(),
+        ...remote.settings,
+        admins: remote.settings.admins ?? local.settings.admins,
+        mealReminders: remote.settings.mealReminders ?? local.settings.mealReminders,
+        userSchedules: remote.settings.userSchedules ?? local.settings.userSchedules,
+        kitchenClosed: remote.settings.kitchenClosed ?? local.settings.kitchenClosed,
+        defaultCookPerson:
+          remote.settings.defaultCookPerson &&
+          FAMILY_MEMBERS.includes(remote.settings.defaultCookPerson as FamilyMember)
+            ? (remote.settings.defaultCookPerson as FamilyMember)
+            : local.settings.defaultCookPerson,
+      }
+    : local.settings
+
+  return reconcileState({ mealPlan, dayOverrides, dateCreatedAt, lateLogs, choreLogs, settings }, now)
+}
+
 function loadReminderLog() {
   try {
     const raw = window.localStorage.getItem(REMINDER_LOG_KEY)
@@ -407,6 +494,14 @@ function App() {
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>(() =>
     notificationsSupported ? Notification.permission : 'denied',
   )
+  const [googleSyncConfig, setGoogleSyncConfig] = useState<GoogleSyncConfig>(() => loadGoogleSyncConfig())
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle')
+  const [syncError, setSyncError] = useState<string | null>(null)
+  const [lastSyncAt, setLastSyncAt] = useState<string | null>(null)
+  const stateRef = useRef(state)
+  const googleSyncConfigRef = useRef(googleSyncConfig)
+  const syncInProgressRef = useRef(false)
+  const performSyncRef = useRef<((mode?: 'push' | 'pull' | 'sync') => Promise<void>) | null>(null)
   const isSelectedMemberAdmin = Boolean(state.settings.admins[selectedMember])
 
   useEffect(() => {
@@ -517,6 +612,33 @@ function App() {
       window.localStorage.setItem(REMINDER_LOG_KEY, JSON.stringify(reminderSentRef.current))
     }
   }, [currentTime, notificationsSupported, state.mealPlan, state.settings.mealReminders])
+
+  // Keep refs in sync with latest state and config
+  useEffect(() => {
+    stateRef.current = state
+  }, [state])
+
+  useEffect(() => {
+    googleSyncConfigRef.current = googleSyncConfig
+  }, [googleSyncConfig])
+
+  // Keep performSyncRef updated so the interval always calls the latest version
+  useEffect(() => {
+    performSyncRef.current = performSync
+  })
+
+  // Auto-sync every 2 minutes when a script URL is configured; also pull on mount
+  useEffect(() => {
+    if (!googleSyncConfig.scriptUrl) return
+
+    void performSyncRef.current?.('sync')
+
+    const timer = window.setInterval(() => {
+      void performSyncRef.current?.('sync')
+    }, 2 * 60_000)
+
+    return () => window.clearInterval(timer)
+  }, [googleSyncConfig.scriptUrl])
 
   const planningDates = useMemo(() => buildPlanningDates(currentTime), [currentTime])
 
@@ -683,6 +805,77 @@ function App() {
     setState((prev) => reconcileState({ ...prev, settings: updater(prev.settings) }, new Date()))
   }
 
+  function updateGoogleSyncConfig(updates: Partial<GoogleSyncConfig>) {
+    setGoogleSyncConfig((prev) => {
+      const next = { ...prev, ...updates }
+      saveGoogleSyncConfig(next)
+      return next
+    })
+  }
+
+  async function performSync(mode: 'push' | 'pull' | 'sync' = 'sync') {
+    const config = googleSyncConfigRef.current
+    if (!config.scriptUrl || syncInProgressRef.current) return
+
+    syncInProgressRef.current = true
+    setSyncStatus('syncing')
+    setSyncError(null)
+
+    try {
+      const localState = stateRef.current
+
+      if (mode === 'pull') {
+        const result = await callGoogleScript(config, 'pull')
+        if (!result.ok) throw new Error(result.error ?? 'Pull mislykkedes')
+        if (result.data) {
+          setState(mergeRemoteState(localState, result.data, new Date()))
+        }
+      } else if (mode === 'push') {
+        const result = await callGoogleScript(config, 'push', localState)
+        if (!result.ok) throw new Error(result.error ?? 'Push mislykkedes')
+      } else {
+        // sync: pull first, merge, then push merged state
+        const pullResult = await callGoogleScript(config, 'pull')
+        if (!pullResult.ok) throw new Error(pullResult.error ?? 'Pull mislykkedes')
+        const merged = pullResult.data
+          ? mergeRemoteState(localState, pullResult.data, new Date())
+          : localState
+        const pushResult = await callGoogleScript(config, 'push', merged)
+        if (!pushResult.ok) throw new Error(pushResult.error ?? 'Push mislykkedes')
+        setState(merged)
+      }
+
+      setSyncStatus('success')
+      setLastSyncAt(new Date().toISOString())
+    } catch (error) {
+      setSyncStatus('error')
+      setSyncError(error instanceof Error ? error.message : 'Netværksfejl')
+    } finally {
+      syncInProgressRef.current = false
+    }
+  }
+
+  async function testGoogleConnection() {
+    const config = googleSyncConfigRef.current
+    if (!config.scriptUrl) return
+
+    setSyncStatus('syncing')
+    setSyncError(null)
+
+    try {
+      const result = await callGoogleScript(config, 'test')
+      if (result.ok) {
+        setSyncStatus('success')
+      } else {
+        setSyncStatus('error')
+        setSyncError(result.error ?? 'Forbindelsestest mislykkedes')
+      }
+    } catch (error) {
+      setSyncStatus('error')
+      setSyncError(error instanceof Error ? error.message : 'Netværksfejl')
+    }
+  }
+
   async function requestNotificationPermission() {
     if (!notificationsSupported) {
       return false
@@ -834,6 +1027,33 @@ function App() {
                   <strong>{pendingLateCount}</strong>
                   <span>Der logges automatisk, når fristen er overskredet.</span>
                 </article>
+                {googleSyncConfig.scriptUrl && (
+                  <article className="summary-card sync-status-card">
+                    <span className="summary-label">Google Sheets Sync</span>
+                    <div className="sync-status-row">
+                      <span className={`sync-indicator sync-${syncStatus}`}>
+                        {syncStatus === 'syncing' && '⟳ Synkroniserer…'}
+                        {syncStatus === 'success' && '✓ Synkroniseret'}
+                        {syncStatus === 'error' && '✗ Fejl'}
+                        {syncStatus === 'idle' && '– Ikke synkroniseret'}
+                      </span>
+                      {lastSyncAt && syncStatus !== 'syncing' && (
+                        <span className="sync-time">Sidst: {formatDateTime(lastSyncAt)}</span>
+                      )}
+                    </div>
+                    {syncStatus === 'error' && syncError && (
+                      <span className="sync-error-text">{syncError}</span>
+                    )}
+                    <button
+                      type="button"
+                      className="primary-button sync-manual-button"
+                      disabled={syncStatus === 'syncing'}
+                      onClick={() => { void performSync('sync') }}
+                    >
+                      {syncStatus === 'syncing' ? 'Synkroniserer…' : 'Synkroniser nu'}
+                    </button>
+                  </article>
+                )}
               </section>
 
               <section className="panel">
@@ -1091,6 +1311,68 @@ function App() {
                     Tillad browser-notifikationer
                   </button>
                 )}
+              </div>
+
+              <div className="settings-section">
+                <h3>Google Sheets Sync</h3>
+                <p className="settings-hint">
+                  Angiv URL til dit Google Apps Script og et adgangskodeord for at aktivere tovejs-synkronisering.
+                  Data gemmes automatisk hvert 2. minut og kan synkroniseres manuelt fra forsiden.
+                  Den valgte aktive bruger gemmes kun lokalt på denne enhed.
+                </p>
+                <div className="google-sync-form">
+                  <label>
+                    Google Apps Script URL
+                    <input
+                      type="url"
+                      value={googleSyncConfig.scriptUrl}
+                      placeholder="https://script.google.com/macros/s/…/exec"
+                      onChange={(event) => updateGoogleSyncConfig({ scriptUrl: event.target.value })}
+                    />
+                  </label>
+                  <label>
+                    Adgangskode
+                    <input
+                      type="password"
+                      value={googleSyncConfig.password}
+                      placeholder="Adgangskode til Google Script"
+                      autoComplete="new-password"
+                      onChange={(event) => updateGoogleSyncConfig({ password: event.target.value })}
+                    />
+                  </label>
+                  <div className="google-sync-actions">
+                    <button
+                      type="button"
+                      className="primary-button"
+                      disabled={!googleSyncConfig.scriptUrl || syncStatus === 'syncing'}
+                      onClick={() => { void testGoogleConnection() }}
+                    >
+                      Test forbindelse
+                    </button>
+                    <button
+                      type="button"
+                      className="primary-button"
+                      disabled={!googleSyncConfig.scriptUrl || syncStatus === 'syncing'}
+                      onClick={() => { void performSync('sync') }}
+                    >
+                      {syncStatus === 'syncing' ? 'Synkroniserer…' : 'Synkroniser nu'}
+                    </button>
+                  </div>
+                  {syncStatus !== 'idle' && (
+                    <div className={`sync-result sync-result-${syncStatus}`}>
+                      {syncStatus === 'syncing' && '⟳ Synkroniserer med Google Sheets…'}
+                      {syncStatus === 'success' && (
+                        <>✓ Forbundet og synkroniseret{lastSyncAt ? ` · ${formatDateTime(lastSyncAt)}` : ''}</>
+                      )}
+                      {syncStatus === 'error' && (
+                        <>✗ Fejl: {syncError ?? 'Ukendt fejl'}</>
+                      )}
+                    </div>
+                  )}
+                  <p className="settings-hint">
+                    Se README for vejledning til opsætning af Google Apps Script og Google Sheets.
+                  </p>
+                </div>
               </div>
 
               <div className="settings-section">

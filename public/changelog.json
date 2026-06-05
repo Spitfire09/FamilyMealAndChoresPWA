@@ -1,23 +1,23 @@
 {
-  "generatedAt": "2026-06-05T12:16:07.929Z",
+  "generatedAt": "2026-06-05T18:05:23.394Z",
   "entries": [
     {
-      "commit": "2bd1da114d881d3b19c086d6506f28140737db67",
-      "version": "2bd1da1",
-      "timestamp": "2026-06-05T10:48:19Z",
-      "message": "Merge pull request #9 from Spitfire09/copilot/add-user-admin-option"
+      "commit": "adb7c5bbc8daa9bf467578bd6366e6076a59bd6b",
+      "version": "adb7c5b",
+      "timestamp": "2026-06-05T17:52:50Z",
+      "message": "Merge pull request #11 from Spitfire09/copilot/add-default-cook-setting"
     },
     {
-      "commit": "bd6618c8fcb6aadb9a4cf433d797cf4948e59629",
-      "version": "bd6618c",
-      "timestamp": "2026-06-05T07:38:35Z",
-      "message": "Validate admin meal controls"
+      "commit": "8f0ae6a1b7da84c75f7e5b2e27e12f15fd37f1a6",
+      "version": "8f0ae6a",
+      "timestamp": "2026-06-05T17:26:37Z",
+      "message": "Add default and per-day cook person selection"
     },
     {
-      "commit": "df53599d2516e2f02b04401ec099ef0029a4c094",
-      "version": "df53599",
-      "timestamp": "2026-06-04T11:46:37Z",
-      "message": "Merge pull request #8 from Spitfire09/copilot/add-pligt-til-list"
+      "commit": "fa467f239f30003881f6d34667d2bcad7bb31ce9",
+      "version": "fa467f2",
+      "timestamp": "2026-06-05T12:41:47Z",
+      "message": "Merge pull request #10 from Spitfire09/copilot/add-dinner-notification"
     }
   ]
 }
