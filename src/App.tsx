@@ -61,6 +61,7 @@ type KitchenClosedRule = {
 type MealDayOverride = {
   kitchenClosed?: boolean
   mealTime?: string
+  cookPerson?: FamilyMember
 }
 
 type AppSettings = {
@@ -68,6 +69,7 @@ type AppSettings = {
   kitchenClosed: KitchenClosedRule[]
   admins: Partial<Record<FamilyMember, boolean>>
   mealReminders: Partial<Record<FamilyMember, boolean>>
+  defaultCookPerson: FamilyMember
 }
 
 type AppState = {
@@ -192,7 +194,21 @@ function createDefaultPartTimeSchedule(): PartTimeSchedule {
 }
 
 function createDefaultSettings(): AppSettings {
-  return { userSchedules: {}, kitchenClosed: [], admins: {}, mealReminders: {} }
+  return {
+    userSchedules: {},
+    kitchenClosed: [],
+    admins: {},
+    mealReminders: {},
+    defaultCookPerson: FAMILY_MEMBERS[0],
+  }
+}
+
+function getCookPersonForDate(
+  dateKey: string,
+  settings: AppSettings,
+  dayOverrides: Record<string, MealDayOverride>,
+): FamilyMember {
+  return dayOverrides[dateKey]?.cookPerson ?? settings.defaultCookPerson
 }
 
 function createDayForDate(
@@ -359,6 +375,11 @@ function loadState() {
           ...(parsed.settings ?? {}),
           admins: parsed.settings?.admins ?? {},
           mealReminders: parsed.settings?.mealReminders ?? {},
+          defaultCookPerson:
+            parsed.settings?.defaultCookPerson &&
+            FAMILY_MEMBERS.includes(parsed.settings.defaultCookPerson as FamilyMember)
+              ? (parsed.settings.defaultCookPerson as FamilyMember)
+              : FAMILY_MEMBERS[0],
         },
       },
       now,
@@ -607,6 +628,25 @@ function App() {
     )
   }
 
+  function setDefaultCookPerson(member: FamilyMember) {
+    updateSettings((prev) => ({ ...prev, defaultCookPerson: member }))
+  }
+
+  function setDayCookPerson(dateKey: string, cookPerson: FamilyMember) {
+    setState((previous) =>
+      reconcileState(
+        {
+          ...previous,
+          dayOverrides: {
+            ...previous.dayOverrides,
+            [dateKey]: { ...(previous.dayOverrides[dateKey] ?? {}), cookPerson },
+          },
+        },
+        new Date(),
+      ),
+    )
+  }
+
   function addChoreLog(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
@@ -739,6 +779,13 @@ function App() {
     odd: 'Ulige uger',
   }
 
+  const cookCounts = FAMILY_MEMBERS.map((member) => ({
+    member,
+    count: Object.keys(state.mealPlan).filter(
+      (dateKey) => getCookPersonForDate(dateKey, state.settings, state.dayOverrides) === member,
+    ).length,
+  }))
+
   return (
     <div className="app-shell">
       <header className="slim-header">
@@ -809,6 +856,7 @@ function App() {
                     const isExpanded = activeExpandedDay === dateKey
                     const kitchenClosed = isKitchenClosedForDate(dateKey, state.settings, state.dayOverrides)
                     const mealTime = state.dayOverrides[dateKey]?.mealTime?.trim() ?? ''
+                    const cookPerson = getCookPersonForDate(dateKey, state.settings, state.dayOverrides)
 
                     return (
                       <article className={`meal-card${kitchenClosed ? ' kitchen-closed' : ''}`} key={dateKey}>
@@ -843,6 +891,9 @@ function App() {
                             <p>
                               <strong>Spisetid:</strong> {mealTime || 'Ikke angivet'}
                             </p>
+                            <p>
+                              <strong>Laver mad:</strong> {cookPerson}
+                            </p>
                             {kitchenClosed && (
                               <p>
                                 <strong>Køkken:</strong> Lukket denne dag
@@ -869,6 +920,19 @@ function App() {
                                 </button>
                               ))}
                             </div>
+                            <label>
+                              Laver mad
+                              <select
+                                value={cookPerson}
+                                onChange={(event) => setDayCookPerson(dateKey, event.target.value as FamilyMember)}
+                              >
+                                {FAMILY_MEMBERS.map((member) => (
+                                  <option key={member} value={member}>
+                                    {member}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
                             {kitchenClosed && <p>Køkkenet er lukket denne dag. Tilmelding er låst.</p>}
                             {isSelectedMemberAdmin && (
                               <div className="meal-admin-controls">
@@ -996,6 +1060,19 @@ function App() {
                     ))}
                   </select>
                 </label>
+                <label>
+                  Standardperson til madlavning
+                  <select
+                    value={state.settings.defaultCookPerson}
+                    onChange={(event) => setDefaultCookPerson(event.target.value as FamilyMember)}
+                  >
+                    {FAMILY_MEMBERS.map((member) => (
+                      <option key={member} value={member}>
+                        {member}
+                      </option>
+                    ))}
+                  </select>
+                </label>
                 <button
                   type="button"
                   className="primary-button utility-button"
@@ -1014,6 +1091,21 @@ function App() {
                     Tillad browser-notifikationer
                   </button>
                 )}
+              </div>
+
+              <div className="settings-section">
+                <h3>Madlavning · antal dage</h3>
+                <p className="settings-hint">
+                  Viser hvor mange planlagte dage hver person står som den, der laver mad.
+                </p>
+                <div className="mini-stats">
+                  {cookCounts.map(({ member, count }) => (
+                    <article key={member} className="mini-stat">
+                      <strong>{member}</strong>
+                      <span>{count} dage</span>
+                    </article>
+                  ))}
+                </div>
               </div>
 
               <div className="settings-section">
