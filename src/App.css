@@ -103,6 +103,10 @@
   padding: 1.25rem;
 }
 
+.summary-card.compact {
+  padding: 0.9rem 1.25rem;
+}
+
 .summary-card strong {
   font-size: 2rem;
   color: var(--heading);
@@ -114,6 +118,15 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--muted);
+}
+
+.summary-inline {
+  color: var(--muted);
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .summary-card.warning {
