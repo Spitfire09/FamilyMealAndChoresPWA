@@ -4,6 +4,7 @@ Første version af en lokal PWA til familien, hvor man kan:
 
 - melde ind om man spiser med til aftensmad nogle dage frem
 - få advarsel og log over manglende svar efter fristen dagen før
+- aktivere bruger-notifikation kl. 17.30 hvis der mangler svar for næste dag
 - registrere huslige pligter pr. person
 
 ## Lokal udvikling
