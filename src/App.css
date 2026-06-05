@@ -221,6 +221,19 @@
   margin: 0;
 }
 
+.meal-admin-controls {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.meal-admin-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
 /* ── Choice buttons ─────────────────────────────────────────────────────── */
 .choice-group {
   display: flex;
@@ -380,6 +393,13 @@ input,
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
+}
+
+.admin-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.8rem;
 }
 
 .radio-group {

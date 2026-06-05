@@ -57,13 +57,20 @@ type KitchenClosedRule = {
   parity: 'always' | WeekParity
 }
 
+type MealDayOverride = {
+  kitchenClosed?: boolean
+  mealTime?: string
+}
+
 type AppSettings = {
   userSchedules: Partial<Record<FamilyMember, UserSchedule>>
   kitchenClosed: KitchenClosedRule[]
+  admins: Partial<Record<FamilyMember, boolean>>
 }
 
 type AppState = {
   mealPlan: MealPlan
+  dayOverrides: Record<string, MealDayOverride>
   dateCreatedAt: Record<string, string>
   lateLogs: LateLogEntry[]
   choreLogs: ChoreLogEntry[]
@@ -146,8 +153,25 @@ function isKitchenClosed(dateKey: string, rules: KitchenClosedRule[]): boolean {
   )
 }
 
-function getDefaultStatus(member: FamilyMember, dateKey: string, settings: AppSettings): AttendanceStatus {
-  if (isKitchenClosed(dateKey, settings.kitchenClosed)) {
+function isKitchenClosedForDate(
+  dateKey: string,
+  settings: AppSettings,
+  dayOverrides: Record<string, MealDayOverride>,
+): boolean {
+  if (dayOverrides[dateKey]?.kitchenClosed) {
+    return true
+  }
+
+  return isKitchenClosed(dateKey, settings.kitchenClosed)
+}
+
+function getDefaultStatus(
+  member: FamilyMember,
+  dateKey: string,
+  settings: AppSettings,
+  dayOverrides: Record<string, MealDayOverride>,
+): AttendanceStatus {
+  if (isKitchenClosedForDate(dateKey, settings, dayOverrides)) {
     return 'no'
   }
   const schedule = settings.userSchedules[member]
@@ -166,12 +190,16 @@ function createDefaultPartTimeSchedule(): PartTimeSchedule {
 }
 
 function createDefaultSettings(): AppSettings {
-  return { userSchedules: {}, kitchenClosed: [] }
+  return { userSchedules: {}, kitchenClosed: [], admins: {} }
 }
 
-function createDayForDate(dateKey: string, settings: AppSettings): Record<FamilyMember, AttendanceStatus> {
+function createDayForDate(
+  dateKey: string,
+  settings: AppSettings,
+  dayOverrides: Record<string, MealDayOverride>,
+): Record<FamilyMember, AttendanceStatus> {
   return Object.fromEntries(
-    FAMILY_MEMBERS.map((member) => [member, getDefaultStatus(member, dateKey, settings)]),
+    FAMILY_MEMBERS.map((member) => [member, getDefaultStatus(member, dateKey, settings, dayOverrides)]),
   ) as Record<FamilyMember, AttendanceStatus>
 }
 
@@ -201,7 +229,7 @@ function ensurePlanningDates(state: AppState, now: Date) {
     const existingDay = mealPlan[dateKey]
 
     if (!existingDay) {
-      mealPlan[dateKey] = createDayForDate(dateKey, state.settings)
+      mealPlan[dateKey] = createDayForDate(dateKey, state.settings, state.dayOverrides)
       dateCreatedAt[dateKey] = now.toISOString()
       changed = true
       continue
@@ -212,7 +240,7 @@ function ensurePlanningDates(state: AppState, now: Date) {
 
     for (const member of FAMILY_MEMBERS) {
       if (!filledDay[member]) {
-        filledDay[member] = getDefaultStatus(member, dateKey, state.settings)
+        filledDay[member] = getDefaultStatus(member, dateKey, state.settings, state.dayOverrides)
         dayChanged = true
       }
     }
@@ -286,6 +314,7 @@ function createInitialState(now: Date): AppState {
   return reconcileState(
     {
       mealPlan: {},
+      dayOverrides: {},
       dateCreatedAt: {},
       lateLogs: [],
       choreLogs: [],
@@ -310,10 +339,15 @@ function loadState() {
     return reconcileState(
       {
         mealPlan: parsed.mealPlan ?? {},
+        dayOverrides: parsed.dayOverrides ?? {},
         dateCreatedAt: parsed.dateCreatedAt ?? {},
         lateLogs: parsed.lateLogs ?? [],
         choreLogs: parsed.choreLogs ?? [],
-        settings: parsed.settings ?? createDefaultSettings(),
+        settings: {
+          ...createDefaultSettings(),
+          ...(parsed.settings ?? {}),
+          admins: parsed.settings?.admins ?? {},
+        },
       },
       now,
     )
@@ -335,6 +369,7 @@ function App() {
   const [applyUpdate, setApplyUpdate] = useState<((reloadPage?: boolean) => Promise<void>) | null>(null)
   const [newKitchenDow, setNewKitchenDow] = useState<DayOfWeek>(5)
   const [newKitchenParity, setNewKitchenParity] = useState<'always' | WeekParity>('odd')
+  const isSelectedMemberAdmin = Boolean(state.settings.admins[selectedMember])
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
@@ -433,15 +468,69 @@ function App() {
 
   function updateAttendance(dateKey: string, person: FamilyMember, status: AttendanceStatus) {
     setState((previous) =>
+      isKitchenClosedForDate(dateKey, previous.settings, previous.dayOverrides)
+        ? previous
+        : reconcileState(
+            {
+              ...previous,
+              mealPlan: {
+                ...previous.mealPlan,
+                [dateKey]: {
+                  ...(previous.mealPlan[dateKey] ?? createEmptyDay()),
+                  [person]: status,
+                },
+              },
+            },
+            new Date(),
+          ),
+    )
+  }
+
+  function setMemberAdmin(member: FamilyMember, isAdmin: boolean) {
+    updateSettings((prev) => {
+      const nextAdmins = { ...prev.admins }
+      if (isAdmin) {
+        nextAdmins[member] = true
+      } else {
+        delete nextAdmins[member]
+      }
+      return { ...prev, admins: nextAdmins }
+    })
+  }
+
+  function setDayKitchenClosed(dateKey: string, kitchenClosed: boolean) {
+    setState((previous) => {
+      const existingOverride = previous.dayOverrides[dateKey] ?? {}
+      const nextOverride = { ...existingOverride, kitchenClosed }
+      const nextMealPlan = kitchenClosed
+        ? {
+            ...previous.mealPlan,
+            [dateKey]: Object.fromEntries(FAMILY_MEMBERS.map((member) => [member, 'no'])) as Record<
+              FamilyMember,
+              AttendanceStatus
+            >,
+          }
+        : previous.mealPlan
+
+      return reconcileState(
+        {
+          ...previous,
+          mealPlan: nextMealPlan,
+          dayOverrides: { ...previous.dayOverrides, [dateKey]: nextOverride },
+        },
+        new Date(),
+      )
+    })
+  }
+
+  function setDayMealTime(dateKey: string, mealTime: string) {
+    setState((previous) =>
       reconcileState(
         {
           ...previous,
-          mealPlan: {
-            ...previous.mealPlan,
-            [dateKey]: {
-              ...(previous.mealPlan[dateKey] ?? createEmptyDay()),
-              [person]: status,
-            },
+          dayOverrides: {
+            ...previous.dayOverrides,
+            [dateKey]: { ...(previous.dayOverrides[dateKey] ?? {}), mealTime },
           },
         },
         new Date(),
@@ -545,6 +634,7 @@ function App() {
       <header className="slim-header">
         <span className="active-user-label">
           Aktiv bruger: <strong>{selectedMember}</strong>
+          {isSelectedMemberAdmin && ' · administrator'}
         </span>
         {updateReady && (
           <button type="button" className="update-badge" onClick={reloadLatestVersion}>
@@ -607,7 +697,8 @@ function App() {
                     const noMembers = FAMILY_MEMBERS.filter((member) => day[member] === 'no')
                     const pendingMembers = FAMILY_MEMBERS.filter((member) => day[member] === 'pending')
                     const isExpanded = activeExpandedDay === dateKey
-                    const kitchenClosed = isKitchenClosed(dateKey, state.settings.kitchenClosed)
+                    const kitchenClosed = isKitchenClosedForDate(dateKey, state.settings, state.dayOverrides)
+                    const mealTime = state.dayOverrides[dateKey]?.mealTime?.trim() ?? ''
 
                     return (
                       <article className={`meal-card${kitchenClosed ? ' kitchen-closed' : ''}`} key={dateKey}>
@@ -639,6 +730,14 @@ function App() {
                             <p>
                               <strong>Afventer:</strong> {pendingMembers.join(', ') || 'Ingen'}
                             </p>
+                            <p>
+                              <strong>Spisetid:</strong> {mealTime || 'Ikke angivet'}
+                            </p>
+                            {kitchenClosed && (
+                              <p>
+                                <strong>Køkken:</strong> Lukket denne dag
+                              </p>
+                            )}
                           </div>
                         </button>
 
@@ -653,12 +752,34 @@ function App() {
                                   key={status}
                                   type="button"
                                   className={`choice ${status} ${day[selectedMember] === status ? 'active' : ''}`}
+                                  disabled={kitchenClosed}
                                   onClick={() => updateAttendance(dateKey, selectedMember, status)}
                                 >
                                   {status === 'yes' ? 'Ja' : status === 'no' ? 'Nej' : 'Uafklaret'}
                                 </button>
                               ))}
                             </div>
+                            {kitchenClosed && <p>Køkkenet er lukket denne dag. Tilmelding er låst.</p>}
+                            {isSelectedMemberAdmin && (
+                              <div className="meal-admin-controls">
+                                <label className="meal-admin-checkbox">
+                                  <input
+                                    type="checkbox"
+                                    checked={kitchenClosed}
+                                    onChange={(event) => setDayKitchenClosed(dateKey, event.target.checked)}
+                                  />
+                                  Luk køkkenet denne dag
+                                </label>
+                                <label>
+                                  Spisetid
+                                  <input
+                                    type="time"
+                                    value={mealTime}
+                                    onChange={(event) => setDayMealTime(dateKey, event.target.value)}
+                                  />
+                                </label>
+                              </div>
+                            )}
                           </div>
                         )}
                       </article>
@@ -806,6 +927,14 @@ function App() {
                           </label>
                         </div>
                       </div>
+                      <label className="admin-toggle">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(state.settings.admins[member])}
+                          onChange={(event) => setMemberAdmin(member, event.target.checked)}
+                        />
+                        Administrator
+                      </label>
 
                       {schedule.type === 'parttime' && (
                         <div className="parttime-schedule">
@@ -859,57 +988,63 @@ function App() {
               <div className="settings-section">
                 <h3>Køkken lukket</h3>
                 <p className="settings-hint">
-                  Angiv dage hvor køkkenet er lukket. Disse dage sættes automatisk til &ldquo;Spiser ikke&rdquo; for alle.
+                  Kun administratorer kan ændre lukkedage og spisetid.
                 </p>
 
-                {state.settings.kitchenClosed.length > 0 && (
-                  <ul className="kitchen-rules-list">
-                    {state.settings.kitchenClosed.map((rule, index) => (
-                      <li key={index} className="kitchen-rule">
-                        <span>
-                          {DAY_NAMES[rule.dayOfWeek]} · {parityLabel[rule.parity]}
-                        </span>
-                        <button
-                          type="button"
-                          className="remove-button"
-                          onClick={() => removeKitchenClosedRule(index)}
-                        >
-                          Fjern
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                {isSelectedMemberAdmin ? (
+                  <>
+                    {state.settings.kitchenClosed.length > 0 && (
+                      <ul className="kitchen-rules-list">
+                        {state.settings.kitchenClosed.map((rule, index) => (
+                          <li key={index} className="kitchen-rule">
+                            <span>
+                              {DAY_NAMES[rule.dayOfWeek]} · {parityLabel[rule.parity]}
+                            </span>
+                            <button
+                              type="button"
+                              className="remove-button"
+                              onClick={() => removeKitchenClosedRule(index)}
+                            >
+                              Fjern
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
 
-                <div className="add-kitchen-rule">
-                  <label>
-                    Ugedag
-                    <select
-                      value={newKitchenDow}
-                      onChange={(e) => setNewKitchenDow(Number(e.target.value) as DayOfWeek)}
-                    >
-                      {WEEK_DAYS_ORDER.map((dow) => (
-                        <option key={dow} value={dow}>
-                          {DAY_NAMES[dow]}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    Hyppighed
-                    <select
-                      value={newKitchenParity}
-                      onChange={(e) => setNewKitchenParity(e.target.value as 'always' | WeekParity)}
-                    >
-                      <option value="always">Altid</option>
-                      <option value="even">Lige uger</option>
-                      <option value="odd">Ulige uger</option>
-                    </select>
-                  </label>
-                  <button type="button" className="primary-button" onClick={addKitchenClosedRule}>
-                    Tilføj lukkedag
-                  </button>
-                </div>
+                    <div className="add-kitchen-rule">
+                      <label>
+                        Ugedag
+                        <select
+                          value={newKitchenDow}
+                          onChange={(e) => setNewKitchenDow(Number(e.target.value) as DayOfWeek)}
+                        >
+                          {WEEK_DAYS_ORDER.map((dow) => (
+                            <option key={dow} value={dow}>
+                              {DAY_NAMES[dow]}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label>
+                        Hyppighed
+                        <select
+                          value={newKitchenParity}
+                          onChange={(e) => setNewKitchenParity(e.target.value as 'always' | WeekParity)}
+                        >
+                          <option value="always">Altid</option>
+                          <option value="even">Lige uger</option>
+                          <option value="odd">Ulige uger</option>
+                        </select>
+                      </label>
+                      <button type="button" className="primary-button" onClick={addKitchenClosedRule}>
+                        Tilføj lukkedag
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <p className="empty-state">Vælg en administrator for at kunne ændre lukkedage og spisetid.</p>
+                )}
               </div>
 
               <div className="log-list">
