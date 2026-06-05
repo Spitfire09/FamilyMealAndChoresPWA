@@ -585,7 +585,92 @@ input,
   }
 }
 
-/* ── Mobile ─────────────────────────────────────────────────────────────── */
+/* ── Google Sheets sync ─────────────────────────────────────────────────── */
+.google-sync-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.google-sync-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-weight: 600;
+}
+
+.google-sync-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.google-sync-actions .primary-button {
+  flex: 1 1 160px;
+}
+
+.sync-result {
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.sync-result-syncing {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.sync-result-success {
+  background: #e8f7ee;
+  color: #166534;
+}
+
+.sync-result-error {
+  background: #feeceb;
+  color: #b42318;
+}
+
+/* Sync card on the meals tab */
+.summary-grid {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.sync-status-card {
+  border-color: var(--border);
+}
+
+.sync-status-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-bottom: 0.75rem;
+}
+
+.sync-indicator {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.sync-syncing { color: var(--accent); }
+.sync-success { color: #166534; }
+.sync-error   { color: #b42318; }
+.sync-idle    { color: var(--muted); }
+
+.sync-time {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.sync-error-text {
+  font-size: 0.85rem;
+  color: #b42318;
+  margin-bottom: 0.5rem;
+}
+
+.sync-manual-button {
+  width: 100%;
+}
+
 @media (max-width: 640px) {
   .content-layout {
     padding: 0.75rem;
