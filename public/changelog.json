@@ -1,23 +1,23 @@
 {
-  "generatedAt": "2026-06-05T18:49:34.807Z",
+  "generatedAt": "2026-06-07T18:29:59.254Z",
   "entries": [
+    {
+      "commit": "0939127dd3fc0985104ba8e8cee53cc5307c81b4",
+      "version": "0939127",
+      "timestamp": "2026-06-05T18:55:26Z",
+      "message": "Merge pull request #16 from Spitfire09/copilot/delete-test-data"
+    },
+    {
+      "commit": "0ea5602b314ba8ff5b7a67829be07f65c789b0a6",
+      "version": "0ea5602",
+      "timestamp": "2026-06-05T18:50:57Z",
+      "message": "Normalize legacy date formats in persisted/synced state"
+    },
     {
       "commit": "ee1be6434036f11cd8d061101c5adc7577600cd0",
       "version": "ee1be64",
       "timestamp": "2026-06-05T18:39:04Z",
       "message": "Merge pull request #15 from Spitfire09/copilot/fix-settings-tab-error"
-    },
-    {
-      "commit": "907913a3958b1aae584b2f66ab27fb3c77704ef5",
-      "version": "907913a",
-      "timestamp": "2026-06-05T18:37:52Z",
-      "message": "Handle invalid date values in settings formatting"
-    },
-    {
-      "commit": "764c129fbcd4445940cd33d1b6973269ed7aeb79",
-      "version": "764c129",
-      "timestamp": "2026-06-05T18:14:30Z",
-      "message": "Merge pull request #14 from Spitfire09/copilot/add-google-sheet-integration"
     }
   ]
 }
