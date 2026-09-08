@@ -699,7 +699,7 @@ function loadState() {
 function App() {
   const [state, setState] = useState<AppState>(() => loadState())
   const [currentTime, setCurrentTime] = useState(() => new Date())
-  const [activeTab, setActiveTab] = useState<ActiveTab>('meals')
+  const [activeTab, setActiveTab] = useState<ActiveTab>('chores')
   const [selectedMember, setSelectedMember] = useState<FamilyMember>(FAMILY_MEMBERS[0])
   const [selectedPerson, setSelectedPerson] = useState<FamilyMember>(FAMILY_MEMBERS[0])
   const [expandedDay, setExpandedDay] = useState<string | null>(null)
@@ -897,6 +897,16 @@ function App() {
   const recentChoreLogs = [...state.choreLogs]
     .sort((left, right) => right.notedAt.localeCompare(left.notedAt))
     .slice(0, 8)
+  const choreTaskOptions = useMemo(() => {
+    const tasks = new Set<string>(CHORE_OPTIONS)
+    for (const entry of state.choreLogs) {
+      const task = entry.task.trim()
+      if (task) {
+        tasks.add(task)
+      }
+    }
+    return [...tasks].sort((taskA, taskB) => taskA.localeCompare(taskB, 'da'))
+  }, [state.choreLogs])
 
   function updateAttendance(dateKey: string, person: FamilyMember, status: AttendanceStatus) {
     setState((previous) =>
@@ -992,9 +1002,15 @@ function App() {
   function addChoreLog(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    const trimmedTask = choreTask.trim()
+    const selectedTaskForMember =
+      isSelectedMemberAdmin || choreTaskOptions.includes(choreTask) ? choreTask : (choreTaskOptions[0] ?? '')
+    const trimmedTask = selectedTaskForMember.trim()
 
     if (!trimmedTask) {
+      return
+    }
+
+    if (!isSelectedMemberAdmin && !choreTaskOptions.includes(trimmedTask)) {
       return
     }
 
@@ -1217,17 +1233,17 @@ function App() {
         <nav className="tab-bar" aria-label="Hovedfaner">
           <button
             type="button"
-            className={`tab-button ${activeTab === 'meals' ? 'active' : ''}`}
-            onClick={() => setActiveTab('meals')}
-          >
-            Aftensmad
-          </button>
-          <button
-            type="button"
             className={`tab-button ${activeTab === 'chores' ? 'active' : ''}`}
             onClick={() => setActiveTab('chores')}
           >
             Pligter
+          </button>
+          <button
+            type="button"
+            className={`tab-button ${activeTab === 'meals' ? 'active' : ''}`}
+            onClick={() => setActiveTab('meals')}
+          >
+            Aftensmad
           </button>
           <button
             type="button"
@@ -1403,7 +1419,7 @@ function App() {
           )}
 
           {activeTab === 'chores' && (
-            <section className="panel">
+            <section className="panel chore-panel">
               <div className="section-heading">
                 <div>
                   <h2>Huslige pligter</h2>
@@ -1430,18 +1446,34 @@ function App() {
                 </label>
                 <label className="task-field">
                   Hvad blev der hjulpet med?
-                  <input
-                    type="text"
-                    value={choreTask}
-                    list="chore-options"
-                    onChange={(event) => setChoreTask(event.target.value)}
-                    placeholder="Vælg fra listen eller skriv en pligt"
-                  />
-                  <datalist id="chore-options">
-                    {CHORE_OPTIONS.map((task) => (
-                      <option key={task} value={task} />
-                    ))}
-                  </datalist>
+                  {isSelectedMemberAdmin ? (
+                    <>
+                      <input
+                        type="text"
+                        value={choreTask}
+                        list="chore-options"
+                        onChange={(event) => setChoreTask(event.target.value)}
+                        placeholder="Vælg fra listen eller skriv en ny pligt"
+                      />
+                      <datalist id="chore-options">
+                        {choreTaskOptions.map((task) => (
+                          <option key={task} value={task} />
+                        ))}
+                      </datalist>
+                    </>
+                  ) : (
+                    <select
+                      value={choreTaskOptions.includes(choreTask) ? choreTask : (choreTaskOptions[0] ?? '')}
+                      onChange={(event) => setChoreTask(event.target.value)}
+                      className="task-picker"
+                    >
+                      {choreTaskOptions.map((task) => (
+                        <option key={task} value={task}>
+                          {task}
+                        </option>
+                      ))}
+                    </select>
+                  )}
                 </label>
                 <button type="submit" className="primary-button">
                   Gem pligt

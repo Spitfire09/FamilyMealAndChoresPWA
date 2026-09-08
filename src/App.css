@@ -69,12 +69,18 @@
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+}
+
+.tab-button:hover {
+  transform: translateY(-1px);
 }
 
 .tab-button.active {
-  background: var(--accent);
-  border-color: var(--accent);
+  background: linear-gradient(135deg, #155eef 0%, #004ee8 100%);
+  border-color: #004ee8;
   color: #fff;
+  box-shadow: 0 10px 24px rgba(21, 94, 239, 0.3);
 }
 
 /* ── Panel & cards ──────────────────────────────────────────────────────── */
@@ -329,6 +335,10 @@ input,
   gap: 1rem;
   grid-template-columns: minmax(0, 200px) minmax(0, 1fr) auto;
   align-items: end;
+  padding: 1rem;
+  border: 1px solid #d7ddf0;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #f8faff 0%, #ffffff 100%);
 }
 
 .chore-form label {
@@ -340,6 +350,24 @@ input,
 
 .task-field {
   min-width: 0;
+}
+
+.task-picker {
+  font-weight: 600;
+}
+
+.chore-panel .section-heading p {
+  color: var(--muted);
+  margin-bottom: 0;
+}
+
+.chore-panel .mini-stat {
+  background: linear-gradient(180deg, #ffffff 0%, #f7f9ff 100%);
+}
+
+.chore-panel .log-list li {
+  border-color: #d7ddf0;
+  background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
 }
 
 /* ── Mini stats ─────────────────────────────────────────────────────────── */
