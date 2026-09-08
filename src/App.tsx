@@ -1430,19 +1430,6 @@ function App() {
               </div>
 
               <form className="chore-form" onSubmit={addChoreLog}>
-                <label>
-                  Person
-                  <select
-                    value={selectedMember}
-                    onChange={(event) => setSelectedMember(event.target.value as FamilyMember)}
-                  >
-                    {FAMILY_MEMBERS.map((member) => (
-                      <option key={member} value={member}>
-                        {member}
-                      </option>
-                    ))}
-                  </select>
-                </label>
                 <label className="task-field">
                   Hvad blev der hjulpet med?
                   {isSelectedMemberAdmin ? (

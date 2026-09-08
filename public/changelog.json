@@ -1,23 +1,29 @@
 {
-  "generatedAt": "2026-06-07T18:29:59.254Z",
+  "generatedAt": "2026-09-08T16:17:39.182Z",
   "entries": [
     {
-      "commit": "0939127dd3fc0985104ba8e8cee53cc5307c81b4",
-      "version": "0939127",
-      "timestamp": "2026-06-05T18:55:26Z",
-      "message": "Merge pull request #16 from Spitfire09/copilot/delete-test-data"
+      "commit": "086e34258b2e37fe7d5c65b54a701191835ca49b",
+      "version": "086e342",
+      "timestamp": "2026-09-08T16:17:21Z",
+      "message": "Remove person selector from chores form"
     },
     {
-      "commit": "0ea5602b314ba8ff5b7a67829be07f65c789b0a6",
-      "version": "0ea5602",
-      "timestamp": "2026-06-05T18:50:57Z",
-      "message": "Normalize legacy date formats in persisted/synced state"
+      "commit": "fc5fdde23261fc78f542cd542e64995434a28368",
+      "version": "fc5fdde",
+      "timestamp": "2026-09-08T18:10:29+02:00",
+      "message": "Merge pull request #20 from Spitfire09/copilot/skifte-bruger-pligter-og-mad"
     },
     {
-      "commit": "ee1be6434036f11cd8d061101c5adc7577600cd0",
-      "version": "ee1be64",
-      "timestamp": "2026-06-05T18:39:04Z",
-      "message": "Merge pull request #15 from Spitfire09/copilot/fix-settings-tab-error"
+      "commit": "f876df28f33e19e92d782f004690d82ecd1b4521",
+      "version": "f876df2",
+      "timestamp": "2026-09-08T16:03:56Z",
+      "message": "Use shared active user for chores and meals"
+    },
+    {
+      "commit": "a0efd43bbb9f33ad9c5f990f7eb65d1ec49ba336",
+      "version": "a0efd43",
+      "timestamp": "2026-09-08T17:44:18+02:00",
+      "message": "Merge pull request #18 from Spitfire09/copilot/update-duties-tab-position"
     }
   ]
 }
