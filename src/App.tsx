@@ -701,7 +701,6 @@ function App() {
   const [currentTime, setCurrentTime] = useState(() => new Date())
   const [activeTab, setActiveTab] = useState<ActiveTab>('chores')
   const [selectedMember, setSelectedMember] = useState<FamilyMember>(FAMILY_MEMBERS[0])
-  const [selectedPerson, setSelectedPerson] = useState<FamilyMember>(FAMILY_MEMBERS[0])
   const [expandedDay, setExpandedDay] = useState<string | null>(null)
   const [choreTask, setChoreTask] = useState('')
   const [releaseHistory, setReleaseHistory] = useState<ChangelogEntry[]>([])
@@ -1015,8 +1014,8 @@ function App() {
     }
 
     const nextEntry: ChoreLogEntry = {
-      id: `${Date.now()}-${selectedPerson}`,
-      person: selectedPerson,
+      id: `${Date.now()}-${selectedMember}`,
+      person: selectedMember,
       task: trimmedTask,
       notedAt: new Date().toISOString(),
     }
@@ -1434,8 +1433,8 @@ function App() {
                 <label>
                   Person
                   <select
-                    value={selectedPerson}
-                    onChange={(event) => setSelectedPerson(event.target.value as FamilyMember)}
+                    value={selectedMember}
+                    onChange={(event) => setSelectedMember(event.target.value as FamilyMember)}
                   >
                     {FAMILY_MEMBERS.map((member) => (
                       <option key={member} value={member}>
@@ -1518,7 +1517,7 @@ function App() {
 
               <div className="settings-grid">
                 <label>
-                  Aktiv bruger til aftensmad
+                  Aktiv bruger til aftensmad og pligter
                   <select
                     value={selectedMember}
                     onChange={(event) => setSelectedMember(event.target.value as FamilyMember)}
