@@ -1027,6 +1027,25 @@ function App() {
     setChoreTask('')
   }
 
+  function removeChoreLog(entryId: string) {
+    setState((previous) => {
+      const entry = previous.choreLogs.find((item) => item.id === entryId)
+      if (!entry) {
+        return previous
+      }
+
+      const selectedIsAdmin = Boolean(previous.settings.admins[selectedMember])
+      if (!selectedIsAdmin && entry.person !== selectedMember) {
+        return previous
+      }
+
+      return {
+        ...previous,
+        choreLogs: previous.choreLogs.filter((item) => item.id !== entryId),
+      }
+    })
+  }
+
   function reloadLatestVersion() {
     if (applyUpdate) {
       void applyUpdate(true)
@@ -1483,7 +1502,18 @@ function App() {
                   <ul>
                     {recentChoreLogs.map((entry) => (
                       <li key={entry.id}>
-                        <strong>{entry.person}</strong> · {entry.task}
+                        <div className="log-list-row">
+                          <strong>{entry.person}</strong> · {entry.task}
+                          {(isSelectedMemberAdmin || entry.person === selectedMember) && (
+                            <button
+                              type="button"
+                              className="remove-button"
+                              onClick={() => removeChoreLog(entry.id)}
+                            >
+                              Slet
+                            </button>
+                          )}
+                        </div>
                         <span>{formatDateTime(entry.notedAt)}</span>
                       </li>
                     ))}
