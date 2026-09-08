@@ -6,6 +6,7 @@ Første version af en lokal PWA til familien, hvor man kan:
 - få advarsel og log over manglende svar efter fristen dagen før
 - aktivere bruger-notifikation kl. 17.30 hvis der mangler svar for næste dag
 - registrere huslige pligter pr. person
+- lade administratorer oprette nye pligter, mens øvrige brugere vælger fra eksisterende liste
 
 ## Lokal udvikling
 
