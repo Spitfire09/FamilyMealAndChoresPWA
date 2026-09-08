@@ -33,6 +33,7 @@ type ChoreLogEntry = {
   person: FamilyMember
   task: string
   notedAt: string
+  registeredBy?: FamilyMember
 }
 
 type ChangelogEntry = {
@@ -312,6 +313,7 @@ function normalizeChoreLogs(rawChoreLogs: unknown): ChoreLogEntry[] {
         person: rawEntry.person,
         task: rawEntry.task,
         notedAt,
+        registeredBy: isFamilyMember(rawEntry.registeredBy) ? rawEntry.registeredBy : undefined,
       },
     ]
   })
@@ -1002,9 +1004,7 @@ function App() {
   function addChoreLog(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    const selectedTaskForMember =
-      isSelectedMemberAdmin || choreTaskOptions.includes(choreTask) ? choreTask : (choreTaskOptions[0] ?? '')
-    const trimmedTask = selectedTaskForMember.trim()
+    const trimmedTask = choreTask.trim()
 
     if (!trimmedTask) {
       return
@@ -1019,6 +1019,7 @@ function App() {
       person: selectedPerson,
       task: trimmedTask,
       notedAt: new Date().toISOString(),
+      registeredBy: selectedMember,
     }
 
     setState((previous) => ({
@@ -1026,6 +1027,19 @@ function App() {
       choreLogs: [nextEntry, ...previous.choreLogs],
     }))
     setChoreTask('')
+  }
+
+  function removeChoreLog(choreLogId: string) {
+    setState((previous) => ({
+      ...previous,
+      choreLogs: previous.choreLogs.filter((entry) => {
+        if (entry.id !== choreLogId) {
+          return true
+        }
+
+        return (entry.registeredBy ?? entry.person) !== selectedMember
+      }),
+    }))
   }
 
   function reloadLatestVersion() {
@@ -1463,10 +1477,13 @@ function App() {
                     </>
                   ) : (
                     <select
-                      value={choreTaskOptions.includes(choreTask) ? choreTask : (choreTaskOptions[0] ?? '')}
+                      value={choreTaskOptions.includes(choreTask) ? choreTask : ''}
                       onChange={(event) => setChoreTask(event.target.value)}
                       className="task-picker"
                     >
+                      <option value="" disabled>
+                        Vælg en pligt
+                      </option>
                       {choreTaskOptions.map((task) => (
                         <option key={task} value={task}>
                           {task}
@@ -1499,6 +1516,11 @@ function App() {
                       <li key={entry.id}>
                         <strong>{entry.person}</strong> · {entry.task}
                         <span>{formatDateTime(entry.notedAt)}</span>
+                        {(entry.registeredBy ?? entry.person) === selectedMember && (
+                          <button type="button" className="remove-button" onClick={() => removeChoreLog(entry.id)}>
+                            Slet
+                          </button>
+                        )}
                       </li>
                     ))}
                   </ul>
