@@ -1,29 +1,29 @@
 {
-  "generatedAt": "2026-09-08T16:17:39.182Z",
+  "generatedAt": "2026-09-08T18:43:54.632Z",
   "entries": [
     {
-      "commit": "086e34258b2e37fe7d5c65b54a701191835ca49b",
-      "version": "086e342",
-      "timestamp": "2026-09-08T16:17:21Z",
-      "message": "Remove person selector from chores form"
+      "commit": "ba03992470369144bc31a27d793fdd981a649eec",
+      "version": "ba03992",
+      "timestamp": "2026-09-08T18:43:34Z",
+      "message": "Add delete option for own chore logs"
+    },
+    {
+      "commit": "91a69bcf1195a4da5c37d716bac47dfb08a6c0ae",
+      "version": "91a69bc",
+      "timestamp": "2026-09-08T18:19:40+02:00",
+      "message": "Merge pull request #21 from Spitfire09/copilot/remove-person-field"
+    },
+    {
+      "commit": "1ff516c464245694a5fe54c3acb8c1f9546d18d2",
+      "version": "1ff516c",
+      "timestamp": "2026-09-08T16:17:53Z",
+      "message": "Update generated changelog after build"
     },
     {
       "commit": "fc5fdde23261fc78f542cd542e64995434a28368",
       "version": "fc5fdde",
       "timestamp": "2026-09-08T18:10:29+02:00",
       "message": "Merge pull request #20 from Spitfire09/copilot/skifte-bruger-pligter-og-mad"
-    },
-    {
-      "commit": "f876df28f33e19e92d782f004690d82ecd1b4521",
-      "version": "f876df2",
-      "timestamp": "2026-09-08T16:03:56Z",
-      "message": "Use shared active user for chores and meals"
-    },
-    {
-      "commit": "a0efd43bbb9f33ad9c5f990f7eb65d1ec49ba336",
-      "version": "a0efd43",
-      "timestamp": "2026-09-08T17:44:18+02:00",
-      "message": "Merge pull request #18 from Spitfire09/copilot/update-duties-tab-position"
     }
   ]
 }
